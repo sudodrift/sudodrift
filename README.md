@@ -4,6 +4,10 @@
 
 Single static Go binary, standard library only, no daemon, no network access, no root required (root just gives better coverage).
 
+![permdrift demo: snapshot, tamper, diff](docs/demo.gif)
+
+The same diff as a static screenshot:
+
 ![permdrift diff output in a terminal](docs/cli-demo.png)
 
 The same run as an HTML report (`permdrift report`):
