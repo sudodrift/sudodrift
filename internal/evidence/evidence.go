@@ -163,8 +163,11 @@ func Review(in report.Input, now time.Time) string {
 	fmt.Fprintf(&b, "- Base snapshot taken: %s\n", mdEscape(in.Base.Timestamp))
 	fmt.Fprintf(&b, "- Current snapshot taken: %s\n", mdEscape(in.Current.Timestamp))
 	fmt.Fprintf(&b, "- Bundle generated: %s\n", now.UTC().Format(time.RFC3339))
-	fmt.Fprintf(&b, "- Changes: %d total (%d high, %d medium, %d low)\n\n", sum.Total, sum.High, sum.Medium, sum.Low)
-	b.WriteString("Reviewer name:\n\nReview date:\n\n")
+	fmt.Fprintf(&b, "- Changes: %d total (%d high, %d medium, %d low)\n", sum.Total, sum.High, sum.Medium, sum.Low)
+	if nb, nc := len(in.Base.Warnings), len(in.Current.Warnings); nb > 0 || nc > 0 {
+		fmt.Fprintf(&b, "- Coverage: partial. The base snapshot has %d warning(s) and the current one has %d, usually unreadable paths from running without root. Missing data can look like drift or hide it.\n", nb, nc)
+	}
+	b.WriteString("\nReviewer name:\n\nReview date:\n\n")
 	b.WriteString("## High findings\n\n")
 	n := 0
 	for _, c := range in.Changes {

@@ -161,6 +161,17 @@ func TestReviewTemplate(t *testing.T) {
 	}
 }
 
+func TestReviewMentionsPartialCoverage(t *testing.T) {
+	in := testInput(t)
+	if strings.Contains(Review(in.Report, fixedNow), "Coverage: partial") {
+		t.Error("full snapshots should not be called partial")
+	}
+	in.Report.Current.Warnings = []string{"open /etc/shadow: permission denied"}
+	if r := Review(in.Report, fixedNow); !strings.Contains(r, "Coverage: partial") {
+		t.Errorf("missing partial coverage note:\n%s", r)
+	}
+}
+
 func TestReviewEscapesHostileText(t *testing.T) {
 	in := testInput(t)
 	in.Report.Current.Hostname = "<script>alert(1)</script>"
