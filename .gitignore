@@ -9,3 +9,4 @@ coverage.*
 /snap*.json
 *.snap.json
 .DS_Store
+/dist/

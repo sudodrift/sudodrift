@@ -1,4 +1,4 @@
-# Optional: `goreleaser release --clean` once the repo is published.
+# Optional: `goreleaser release --clean` to build the archives and packages.
 version: 2
 project_name: permdrift
 before:
@@ -17,7 +17,23 @@ archives:
   - formats: [tar.gz]
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     files: [LICENSE, README.md]
+nfpms:
+  - id: packages
+    package_name: permdrift
+    vendor: permdrift
+    homepage: https://github.com/permdrift/permdrift
+    maintainer: permdrift <noreply@permdrift.invalid>
+    description: Linux permission drift detector (sudo, SSH keys, SUID files).
+    license: MIT
+    formats: [deb, rpm]
+    bindir: /usr/bin
+    file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    contents:
+      - src: LICENSE
+        dst: /usr/share/doc/permdrift/LICENSE
+      - src: README.md
+        dst: /usr/share/doc/permdrift/README.md
 checksum:
-  name_template: checksums.txt
+  name_template: SHA256SUMS
 changelog:
   sort: asc

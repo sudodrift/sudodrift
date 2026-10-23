@@ -33,6 +33,28 @@ tar xzf permdrift_${VER#v}_linux_$ARCH.tar.gz
 sudo install -m 0755 permdrift /usr/local/bin/
 ```
 
+On Debian, Ubuntu, Fedora or RHEL style systems you can also build `.deb` and `.rpm` packages with `goreleaser release --snapshot --clean` (see `.goreleaser.yaml`). I have not attached packages to a release yet.
+
+With Homebrew on Linux (the tool is Linux only, so this does nothing useful on macOS):
+
+```sh
+brew install permdrift/tap/permdrift
+```
+
+The formula lives in [permdrift/homebrew-tap](https://github.com/permdrift/homebrew-tap) and installs the v0.1.0 release binary.
+
+### Docker
+
+The image is a static binary on `scratch`. Mount the host's root filesystem read only and point `--root` at it:
+
+```sh
+docker run --rm -v /:/host:ro ghcr.io/permdrift/permdrift:latest snapshot --root /host > base.json
+```
+
+The snapshot goes to stdout, so the redirect happens on the host. It reads the hostname from `/host/etc/hostname`, so the baseline carries the host's name and not the container's. Run it as root (the default in the container) or shadow state and other users' `~/.ssh` will be missing. The image is published to ghcr.io when a version tag is pushed, so it will only exist after the next tag. Until then, build it yourself with `docker build -t permdrift .`. I could not test the Docker build on the machine where I wrote this, so tell me if it breaks.
+
+### From source
+
 To build from source you need Go 1.21+ (check with `go version`).
 
 Quickest way:
@@ -190,7 +212,7 @@ Need help setting this up, collecting SOC 2 / ISO 27001 access review evidence, 
 
 ## Contributing
 
-Bug reports, false positives and missing-collector requests are welcome as [issues](https://github.com/permdrift/permdrift/issues). For code changes, open a pull request that includes a test (fake-root fixtures in `internal/fixture` make this easy), and run `gofmt`, `go vet ./...` and `go test -race ./...` first. Please keep the tool dependency-free (standard library only) and read-only: it must never modify the host it scans.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the short version. Bug reports, false positives and missing-collector requests are welcome as [issues](https://github.com/permdrift/permdrift/issues). For code changes, open a pull request that includes a test (fake-root fixtures in `internal/fixture` make this easy), and run `gofmt`, `go vet ./...` and `go test -race ./...` first. Please keep the tool dependency-free (standard library only) and read-only: it must never modify the host it scans.
 
 To report a security problem in permdrift itself, see [SECURITY.md](SECURITY.md).
 
