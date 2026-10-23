@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>permdrift report: demo-host</title>
+<style>
+:root{--bg:#f6f7f9;--fg:#1d2430;--mut:#667085;--card:#fff;--bd:#e2e5ea;
+--add:#1a7f37;--addbg:#e9f7ee;--rem:#c62828;--rembg:#fdecec;--chg:#9a6700;--chgbg:#fff6df;
+--hi:#c62828;--med:#d97706;--low:#2563eb}
+@media(prefers-color-scheme:dark){:root{--bg:#0f141b;--fg:#e6e9ef;--mut:#98a2b3;--card:#171e28;--bd:#2a3342;
+--addbg:#12301f;--rembg:#3a1818;--chgbg:#3a2f10;--add:#4ade80;--rem:#f87171;--chg:#fbbf24}}
+*{box-sizing:border-box}body{margin:0;padding:24px;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:1100px;margin:0 auto}h1{margin:0 0 4px;font-size:24px}h2{font-size:16px;margin:28px 0 10px}
+.sub{color:var(--mut);margin-bottom:18px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:12px 14px}
+.card .n{font-size:28px;font-weight:700;line-height:1.1}.card .l{color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+.card.high .n{color:var(--hi)}.card.med .n{color:var(--med)}.card.low .n{color:var(--low)}
+.card.add .n{color:var(--add)}.card.rem .n{color:var(--rem)}.card.chg .n{color:var(--chg)}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:700px){.meta{grid-template-columns:1fr}}
+.meta .card{font-size:13px}.meta b{display:block;margin-bottom:4px}code{font:12px ui-monospace,Menlo,Consolas,monospace;word-break:break-all}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--bd);border-radius:8px;overflow:hidden}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--bd);vertical-align:top}
+th{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
+tr.t-added td:first-child{border-left:4px solid var(--add)}tr.t-added{background:var(--addbg)}
+tr.t-removed td:first-child{border-left:4px solid var(--rem)}tr.t-removed{background:var(--rembg)}
+tr.t-changed td:first-child{border-left:4px solid var(--chg)}tr.t-changed{background:var(--chgbg)}
+.badge{display:inline-block;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:600;color:#fff}
+.badge.high{background:var(--hi)}.badge.medium{background:var(--med)}.badge.low{background:var(--low)}
+.type{font-weight:600}.type.added{color:var(--add)}.type.removed{color:var(--rem)}.type.changed{color:var(--chg)}
+.ok{background:var(--addbg);border:1px solid var(--add);color:var(--add);padding:14px;border-radius:8px;font-weight:600}
+.warn{background:var(--chgbg);border:1px solid var(--chg);padding:10px 14px;border-radius:8px;margin-bottom:12px}
+.cats span{display:inline-block;margin:0 8px 6px 0;padding:2px 10px;border:1px solid var(--bd);border-radius:999px;background:var(--card)}
+footer{color:var(--mut);font-size:12px;margin-top:28px}
+</style></head><body><div class="wrap">
+<h1>permdrift report</h1>
+<div class="sub">Linux permission drift on <b>demo-host</b> · generated 2026-10-23T08:54:35Z</div>
+
+
+<h2>Summary</h2>
+<div class="cards">
+<div class="card"><div class="n">15</div><div class="l">Total changes</div></div>
+<div class="card high"><div class="n">11</div><div class="l">High</div></div>
+<div class="card med"><div class="n">2</div><div class="l">Medium</div></div>
+<div class="card low"><div class="n">2</div><div class="l">Low</div></div>
+<div class="card add"><div class="n">11</div><div class="l">Added</div></div>
+<div class="card rem"><div class="n">0</div><div class="l">Removed</div></div>
+<div class="card chg"><div class="n">4</div><div class="l">Changed</div></div>
+</div>
+<div class="cats" style="margin-top:12px"><span>file_perm: <b>3</b></span><span>group_member: <b>2</b></span><span>ssh_key: <b>2</b></span><span>sshd: <b>2</b></span><span>suid: <b>2</b></span><span>user: <b>2</b></span><span>sudoers: <b>1</b></span><span>world_writable: <b>1</b></span></div>
+
+
+<h2>Snapshots</h2>
+<div class="meta">
+<div class="card"><b>Base</b>host demo-host<br>taken 2026-10-23T08:54:35Z<br>root <code>/tmp/permdrift-demo.Op6X7o</code><br>hash <code>sha256:b6a714ad9ed6c3c819cfb9b7e640b2e8f125e7483be1b30881f48b0cc5bbead8</code></div>
+<div class="card"><b>Current</b>host demo-host<br>taken 2026-10-23T08:54:35Z<br>root <code>/tmp/permdrift-demo.Op6X7o</code><br>hash <code>sha256:c2fbcddf3f1d5bd53d7a477caa79581d6d517adb2924d3d87df2ec5b1872d153</code></div>
+</div>
+
+<h2>Changes</h2>
+
+<table><thead><tr><th>Severity</th><th>Change</th><th>Category</th><th>Details</th></tr></thead><tbody>
+<tr class="t-changed"><td><span class="badge high">High</span></td>
+<td><span class="type changed">changed</span></td><td>file_perm</td><td>/etc/shadow permissions loosened (secret now readable by group/others): 0640 -&gt; 0644</td></tr>
+<tr class="t-added"><td><span class="badge high">High</span></td>
+<td><span class="type added">added</span></td><td>group_member</td><td>user mallory added to group docker (privileged group)</td></tr>
+<tr class="t-added"><td><span class="badge high">High</span></td>
+<td><span class="type added">added</span></td><td>group_member</td><td>user bob added to group sudo (privileged group)</td></tr>
+<tr class="t-added"><td><span class="badge high">High</span></td>
+<td><span class="type added">added</span></td><td>ssh_key</td><td>SSH key SHA256:BjSpGY4Pvc0NGK&#43;0HiRFIbuKs0DLXwdrhb9FMiTAu5M added for user alice (ssh-ed25519, comment &#34;totally-legit&#34;, options: from=&#34;10.0.0.0/8&#34;) [privileged user]</td></tr>
+<tr class="t-added"><td><span class="badge high">High</span></td>
+<td><span class="type added">added</span></td><td>ssh_key</td><td>SSH key SHA256:mdjRRFt76vijB/211jtzs1JjGFJR6LVIbEqfsGAoPR4 added for user bob (ssh-ed25519, comment &#34;bob@workstation&#34;) [privileged user]</td></tr>
+<tr class="t-changed"><td><span class="badge high">High</span></td>
+<td><span class="type changed">changed</span></td><td>sshd</td><td>sshd_config passwordauthentication: &#34;no&#34; -&gt; &#34;yes&#34;</td></tr>
+<tr class="t-changed"><td><span class="badge high">High</span></td>
+<td><span class="type changed">changed</span></td><td>sshd</td><td>sshd_config permitrootlogin: &#34;no&#34; -&gt; &#34;yes&#34;</td></tr>
+<tr class="t-added"><td><span class="badge high">High</span></td>
+<td><span class="type added">added</span></td><td>sudoers</td><td>NOPASSWD &#43; ALL=(ALL) sudo rule added for bob in /etc/sudoers.d/90-ops: bob ALL=(ALL) NOPASSWD: ALL</td></tr>
+<tr class="t-changed"><td><span class="badge high">High</span></td>
+<td><span class="type changed">changed</span></td><td>suid</td><td>/usr/bin/wall became SUID (mode 2755 -&gt; 6755)</td></tr>
+<tr class="t-added"><td><span class="badge high">High</span></td>
+<td><span class="type added">added</span></td><td>user</td><td>user toor added (uid=0, login shell /bin/bash), UID 0 (root-equivalent)</td></tr>
+<tr class="t-added"><td><span class="badge high">High</span></td>
+<td><span class="type added">added</span></td><td>world_writable</td><td>/etc/cron.hourly/cleanup.sh is now world-writable file (mode 0666)</td></tr>
+<tr class="t-added"><td><span class="badge medium">Medium</span></td>
+<td><span class="type added">added</span></td><td>suid</td><td>/usr/bin/foo is now SUID (owner alice, mode 4755; new file or mode change)</td></tr>
+<tr class="t-added"><td><span class="badge medium">Medium</span></td>
+<td><span class="type added">added</span></td><td>user</td><td>user mallory added (uid=1002, login shell /bin/bash)</td></tr>
+<tr class="t-added"><td><span class="badge low">Low</span></td>
+<td><span class="type added">added</span></td><td>file_perm</td><td>sensitive file /etc/sudoers.d/90-ops added (mode 0440, alice:alice)</td></tr>
+<tr class="t-added"><td><span class="badge low">Low</span></td>
+<td><span class="type added">added</span></td><td>file_perm</td><td>sensitive file /home/bob/.ssh/authorized_keys added (mode 0600, alice:alice)</td></tr>
+</tbody></table>
+
+<footer>Generated by permdrift 0.1.0. Severity is a heuristic, not a verdict: review each change in context.</footer>
+</div></body></html>

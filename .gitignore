@@ -1,0 +1,11 @@
+/bin/
+*.test
+*.out
+coverage.*
+# demo intermediates (the sample report/diff are committed)
+/examples/base.json
+/examples/current.json
+# local snapshots may contain sensitive host details
+/snap*.json
+*.snap.json
+.DS_Store

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1015" height="474" viewBox="0 0 1015 474" font-family="DejaVu Sans Mono,Menlo,Consolas,monospace" font-size="13">
+<rect width="1015" height="474" rx="8" fill="#0d1117"/>
+<circle cx="20" cy="18" r="6" fill="#ff5f56"/><circle cx="40" cy="18" r="6" fill="#ffbd2e"/><circle cx="60" cy="18" r="6" fill="#27c93f"/>
+<text x="20" y="50" fill="#7ee787" xml:space="preserve">$ permdrift snapshot --root /tmp/fakeroot -o base.json</text>
+<text x="20" y="68" fill="#8b949e" xml:space="preserve">snapshot written to base.json: 4 users, 5 groups, 1 ssh keys, 4 sudoers lines, 2 SUID/SGID files, 0 warnings</text>
+<text x="20" y="86" fill="#7ee787" xml:space="preserve">$ permdrift diff base.json current.json</text>
+<text x="20" y="104" fill="#8b949e" xml:space="preserve"></text>
+<text x="20" y="122" fill="#ffffff" xml:space="preserve">DRIFT DETECTED: 15 change(s): High 11, Medium 2, Low 2 | added 11, removed 0, changed 4</text>
+<text x="20" y="140" fill="#8b949e" xml:space="preserve"></text>
+<text x="20" y="158" fill="#ff7b72" xml:space="preserve">[HIGH  ] changed file_perm      /etc/shadow permissions loosened (secret now readable by group/others): 0640 -&gt; 0644</text>
+<text x="20" y="176" fill="#ff7b72" xml:space="preserve">[HIGH  ] added   group_member   user mallory added to group docker (privileged group)</text>
+<text x="20" y="194" fill="#ff7b72" xml:space="preserve">[HIGH  ] added   group_member   user bob added to group sudo (privileged group)</text>
+<text x="20" y="212" fill="#ff7b72" xml:space="preserve">[HIGH  ] added   ssh_key        SSH key SHA256:BjSpGY4Pvc0NGK+0HiRFIbuKs0DLXwdrhb9FMiTAu5M added for user alice (ssh-ed25519…</text>
+<text x="20" y="230" fill="#ff7b72" xml:space="preserve">[HIGH  ] added   ssh_key        SSH key SHA256:mdjRRFt76vijB/211jtzs1JjGFJR6LVIbEqfsGAoPR4 added for user bob (ssh-ed25519, …</text>
+<text x="20" y="248" fill="#ff7b72" xml:space="preserve">[HIGH  ] changed sshd           sshd_config passwordauthentication: &quot;no&quot; -&gt; &quot;yes&quot;</text>
+<text x="20" y="266" fill="#ff7b72" xml:space="preserve">[HIGH  ] changed sshd           sshd_config permitrootlogin: &quot;no&quot; -&gt; &quot;yes&quot;</text>
+<text x="20" y="284" fill="#ff7b72" xml:space="preserve">[HIGH  ] added   sudoers        NOPASSWD + ALL=(ALL) sudo rule added for bob in /etc/sudoers.d/90-ops: bob ALL=(ALL) NOPASSW…</text>
+<text x="20" y="302" fill="#ff7b72" xml:space="preserve">[HIGH  ] changed suid           /usr/bin/wall became SUID (mode 2755 -&gt; 6755)</text>
+<text x="20" y="320" fill="#ff7b72" xml:space="preserve">[HIGH  ] added   user           user toor added (uid=0, login shell /bin/bash), UID 0 (root-equivalent)</text>
+<text x="20" y="338" fill="#ff7b72" xml:space="preserve">[HIGH  ] added   world_writable /etc/cron.hourly/cleanup.sh is now world-writable file (mode 0666)</text>
+<text x="20" y="356" fill="#e3b341" xml:space="preserve">[MEDIUM] added   suid           /usr/bin/foo is now SUID (owner alice, mode 4755; new file or mode change)</text>
+<text x="20" y="374" fill="#e3b341" xml:space="preserve">[MEDIUM] added   user           user mallory added (uid=1002, login shell /bin/bash)</text>
+<text x="20" y="392" fill="#79c0ff" xml:space="preserve">[LOW   ] added   file_perm      sensitive file /etc/sudoers.d/90-ops added (mode 0440, alice:alice)</text>
+<text x="20" y="410" fill="#79c0ff" xml:space="preserve">[LOW   ] added   file_perm      sensitive file /home/bob/.ssh/authorized_keys added (mode 0600, alice:alice)</text>
+<text x="20" y="428" fill="#7ee787" xml:space="preserve">$ echo $?</text>
+<text x="20" y="446" fill="#c9d1d9" xml:space="preserve">1</text>
+</svg>

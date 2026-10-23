@@ -1,0 +1,20 @@
+base:    host=demo-host time=2026-10-23T08:54:35Z hash=sha256:b6a714ad9ed6…
+current: host=demo-host time=2026-10-23T08:54:35Z hash=sha256:c2fbcddf3f1d…
+
+DRIFT DETECTED: 15 change(s): High 11, Medium 2, Low 2 | added 11, removed 0, changed 4
+
+[HIGH  ] changed file_perm      /etc/shadow permissions loosened (secret now readable by group/others): 0640 -> 0644
+[HIGH  ] added   group_member   user mallory added to group docker (privileged group)
+[HIGH  ] added   group_member   user bob added to group sudo (privileged group)
+[HIGH  ] added   ssh_key        SSH key SHA256:BjSpGY4Pvc0NGK+0HiRFIbuKs0DLXwdrhb9FMiTAu5M added for user alice (ssh-ed25519, comment "totally-legit", options: from="10.0.0.0/8") [privileged user]
+[HIGH  ] added   ssh_key        SSH key SHA256:mdjRRFt76vijB/211jtzs1JjGFJR6LVIbEqfsGAoPR4 added for user bob (ssh-ed25519, comment "bob@workstation") [privileged user]
+[HIGH  ] changed sshd           sshd_config passwordauthentication: "no" -> "yes"
+[HIGH  ] changed sshd           sshd_config permitrootlogin: "no" -> "yes"
+[HIGH  ] added   sudoers        NOPASSWD + ALL=(ALL) sudo rule added for bob in /etc/sudoers.d/90-ops: bob ALL=(ALL) NOPASSWD: ALL
+[HIGH  ] changed suid           /usr/bin/wall became SUID (mode 2755 -> 6755)
+[HIGH  ] added   user           user toor added (uid=0, login shell /bin/bash), UID 0 (root-equivalent)
+[HIGH  ] added   world_writable /etc/cron.hourly/cleanup.sh is now world-writable file (mode 0666)
+[MEDIUM] added   suid           /usr/bin/foo is now SUID (owner alice, mode 4755; new file or mode change)
+[MEDIUM] added   user           user mallory added (uid=1002, login shell /bin/bash)
+[LOW   ] added   file_perm      sensitive file /etc/sudoers.d/90-ops added (mode 0440, alice:alice)
+[LOW   ] added   file_perm      sensitive file /home/bob/.ssh/authorized_keys added (mode 0600, alice:alice)
