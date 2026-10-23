@@ -1,5 +1,5 @@
 [Unit]
-Description=Weekly permdrift snapshot
+Description=Weekly sudodrift snapshot
 
 [Timer]
 OnCalendar=weekly

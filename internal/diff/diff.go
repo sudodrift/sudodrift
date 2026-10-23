@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/permdrift/permdrift/internal/ignore"
-	"github.com/permdrift/permdrift/internal/snapshot"
+	"github.com/sudodrift/sudodrift/internal/ignore"
+	"github.com/sudodrift/sudodrift/internal/snapshot"
 )
 
 type Severity int

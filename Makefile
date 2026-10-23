@@ -1,4 +1,4 @@
-BINARY  := bin/permdrift
+BINARY  := bin/sudodrift
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo 0.2.0-dev)
 LDFLAGS := -s -w -X main.version=$(VERSION)
 
@@ -7,10 +7,10 @@ LDFLAGS := -s -w -X main.version=$(VERSION)
 all: test build
 
 build:
-	CGO_ENABLED=0 go build -trimpath -ldflags '$(LDFLAGS)' -o $(BINARY) ./cmd/permdrift
+	CGO_ENABLED=0 go build -trimpath -ldflags '$(LDFLAGS)' -o $(BINARY) ./cmd/sudodrift
 
 install:
-	CGO_ENABLED=0 go install -trimpath -ldflags '$(LDFLAGS)' ./cmd/permdrift
+	CGO_ENABLED=0 go install -trimpath -ldflags '$(LDFLAGS)' ./cmd/sudodrift
 
 test:
 	go vet ./...

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/permdrift/permdrift/internal/fixture"
+	"github.com/sudodrift/sudodrift/internal/fixture"
 )
 
 func runCLI(args ...string) (int, string, string) {
@@ -79,7 +79,7 @@ func TestErrors(t *testing.T) {
 	if c, _, _ := runCLI("snapshot", "--root", "/definitely/not/here"); c != 2 {
 		t.Error("bad root should exit 2")
 	}
-	if c, out, _ := runCLI("version"); c != 0 || !strings.Contains(out, "permdrift") {
+	if c, out, _ := runCLI("version"); c != 0 || !strings.Contains(out, "sudodrift") {
 		t.Error("version")
 	}
 }
@@ -103,7 +103,7 @@ func TestBadSnapshotsExit2(t *testing.T) {
 		"empty":     write("empty.json", ""),
 		"object":    write("obj.json", "{}"),
 		"version":   write("v99.json", strings.Replace(string(b), `"schema": 1`, `"schema": 99`, 1)),
-		"wrongtool": write("tool.json", strings.Replace(string(b), `"permdrift"`, `"other"`, 1)),
+		"wrongtool": write("tool.json", strings.Replace(string(b), `"sudodrift"`, `"other"`, 1)),
 	}
 	for name, p := range cases {
 		for _, cmd := range [][]string{{"diff", good, p}, {"diff", p, good}, {"report", good, p, "-o", filepath.Join(tmp, "r.html")}} {
@@ -128,7 +128,7 @@ func TestSubcommandHelp(t *testing.T) {
 	for _, sub := range []string{"snapshot", "diff", "report", "evidence"} {
 		for _, h := range []string{"-h", "--help"} {
 			c, _, e := runCLI(sub, h)
-			if c != 0 || !strings.Contains(e, "Usage: permdrift "+sub) {
+			if c != 0 || !strings.Contains(e, "Usage: sudodrift "+sub) {
 				t.Errorf("%s %s: exit=%d stderr=%q", sub, h, c, e)
 			}
 		}

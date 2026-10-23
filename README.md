@@ -1,36 +1,36 @@
-# permdrift
+# sudodrift
 
 **Linux Permission Drift Detector.** Snapshot the security-relevant permission state of a host, then see *what changed* in plain English: "SSH key SHA256:… added for user bob", "NOPASSWD sudo rule added", "user alice added to group sudo", "/usr/bin/wall became SUID".
 
 Single static Go binary, standard library only, no daemon, no network access, no root required (root just gives better coverage).
 
-![permdrift demo: snapshot, tamper, diff](docs/demo.gif)
+![sudodrift demo: snapshot, tamper, diff](docs/demo.gif)
 
 A larger sample run as a static screenshot:
 
-![permdrift diff output in a terminal](docs/cli-demo.png)
+![sudodrift diff output in a terminal](docs/cli-demo.png)
 
-The same run as an HTML report (`permdrift report`):
+The same run as an HTML report (`sudodrift report`):
 
-<img src="docs/report-screenshot.png" alt="permdrift HTML report" width="700">
+<img src="docs/report-screenshot.png" alt="sudodrift HTML report" width="700">
 
 > Status: early (v0.2.0). It works and has tests, but expect rough edges and some changes to the JSON schema and severity rules.
 
 ## The problem
 
-Access on a Linux box quietly drifts: someone adds a "temporary" NOPASSWD rule, an extra SSH key lands in `authorized_keys`, a binary gains the SUID bit, `/etc/shadow` becomes group-readable. Config management tells you what *should* be there; auditors and incident responders need to know what *is* there and *when it changed*. permdrift gives you a small, diffable JSON baseline and a ranked list of access-relevant changes between two points in time.
+Access on a Linux box quietly drifts: someone adds a "temporary" NOPASSWD rule, an extra SSH key lands in `authorized_keys`, a binary gains the SUID bit, `/etc/shadow` becomes group-readable. Config management tells you what *should* be there; auditors and incident responders need to know what *is* there and *when it changed*. sudodrift gives you a small, diffable JSON baseline and a ranked list of access-relevant changes between two points in time.
 
 ## Install
 
-Prebuilt static binaries for Linux (amd64 and arm64) are on the [releases page](https://github.com/permdrift/permdrift/releases/latest):
+Prebuilt static binaries for Linux (amd64 and arm64) are on the [releases page](https://github.com/sudodrift/sudodrift/releases/latest):
 
 ```sh
 VER=v0.2.0; ARCH=amd64   # or arm64
-curl -fsSLO https://github.com/permdrift/permdrift/releases/download/$VER/permdrift_${VER#v}_linux_$ARCH.tar.gz
-curl -fsSLO https://github.com/permdrift/permdrift/releases/download/$VER/SHA256SUMS
+curl -fsSLO https://github.com/sudodrift/sudodrift/releases/download/$VER/sudodrift_${VER#v}_linux_$ARCH.tar.gz
+curl -fsSLO https://github.com/sudodrift/sudodrift/releases/download/$VER/SHA256SUMS
 sha256sum -c SHA256SUMS --ignore-missing
-tar xzf permdrift_${VER#v}_linux_$ARCH.tar.gz
-sudo install -m 0755 permdrift /usr/local/bin/
+tar xzf sudodrift_${VER#v}_linux_$ARCH.tar.gz
+sudo install -m 0755 sudodrift /usr/local/bin/
 ```
 
 On Debian, Ubuntu, Fedora or RHEL style systems you can also build `.deb` and `.rpm` packages with `goreleaser release --snapshot --clean` (see `.goreleaser.yaml`). I have not attached packages to a release yet.
@@ -38,20 +38,20 @@ On Debian, Ubuntu, Fedora or RHEL style systems you can also build `.deb` and `.
 With Homebrew on Linux (the tool is Linux only, so this does nothing useful on macOS):
 
 ```sh
-brew install permdrift/tap/permdrift
+brew install sudodrift/tap/sudodrift
 ```
 
-The formula lives in [permdrift/homebrew-tap](https://github.com/permdrift/homebrew-tap) and installs the v0.2.0 release binary.
+The formula lives in [sudodrift/homebrew-tap](https://github.com/sudodrift/homebrew-tap) and installs the v0.2.0 release binary.
 
 ### Docker
 
 The image is a static binary on `scratch`. Mount the host's root filesystem read only and point `--root` at it:
 
 ```sh
-docker run --rm -v /:/host:ro ghcr.io/permdrift/permdrift:latest snapshot --root /host > base.json
+docker run --rm -v /:/host:ro ghcr.io/sudodrift/sudodrift:latest snapshot --root /host > base.json
 ```
 
-The snapshot goes to stdout, so the redirect happens on the host. It reads the hostname from `/host/etc/hostname`, so the baseline carries the host's name and not the container's. Run it as root (the default in the container) or shadow state and other users' `~/.ssh` will be missing. The image is published to ghcr.io when a version tag is pushed, so it will only exist after the next tag. Until then, build it yourself with `docker build -t permdrift .`. I could not test the Docker build on the machine where I wrote this, so tell me if it breaks.
+The snapshot goes to stdout, so the redirect happens on the host. It reads the hostname from `/host/etc/hostname`, so the baseline carries the host's name and not the container's. Run it as root (the default in the container) or shadow state and other users' `~/.ssh` will be missing. The image is published to ghcr.io when a version tag is pushed, so it will only exist after the next tag. Until then, build it yourself with `docker build -t sudodrift .`. I could not test the Docker build on the machine where I wrote this, so tell me if it breaks.
 
 ### From source
 
@@ -60,44 +60,44 @@ To build from source you need Go 1.21+ (check with `go version`).
 Quickest way:
 
 ```sh
-go install github.com/permdrift/permdrift/cmd/permdrift@latest
+go install github.com/sudodrift/sudodrift/cmd/sudodrift@latest
 ```
 
 Or build from a clone:
 
 ```sh
-git clone https://github.com/permdrift/permdrift.git permdrift && cd permdrift
-# option A (needs make): builds ./bin/permdrift, CGO disabled, static, version from git
+git clone https://github.com/sudodrift/sudodrift.git sudodrift && cd sudodrift
+# option A (needs make): builds ./bin/sudodrift, CGO disabled, static, version from git
 make build
 # option B (no make needed):
-CGO_ENABLED=0 go build -trimpath -o bin/permdrift ./cmd/permdrift   # creates bin/ for you
+CGO_ENABLED=0 go build -trimpath -o bin/sudodrift ./cmd/sudodrift   # creates bin/ for you
 
-./bin/permdrift version
+./bin/sudodrift version
 ```
 
-To put it on your `PATH`, either `sudo install -m 0755 bin/permdrift /usr/local/bin/` or run `make install` / `go install ./cmd/permdrift` (installs to `$(go env GOPATH)/bin`, usually `~/go/bin`, which you may need to add to `PATH`). The examples below assume `permdrift` is on your `PATH`; otherwise use `./bin/permdrift`.
+To put it on your `PATH`, either `sudo install -m 0755 bin/sudodrift /usr/local/bin/` or run `make install` / `go install ./cmd/sudodrift` (installs to `$(go env GOPATH)/bin`, usually `~/go/bin`, which you may need to add to `PATH`). The examples below assume `sudodrift` is on your `PATH`; otherwise use `./bin/sudodrift`.
 
 ## Usage
 
 ```sh
 # 1. baseline (run as root for full coverage: shadow state, all ~/.ssh, sudoers)
-sudo permdrift snapshot -o base.json
+sudo sudodrift snapshot -o base.json
 
 # 2. later...
-sudo permdrift snapshot -o now.json
+sudo sudodrift snapshot -o now.json
 
 # 3. text diff; exit code 1 if drift was found (handy for cron/CI)
-permdrift diff base.json now.json
+sudodrift diff base.json now.json
 
 # 3b. the same diff as JSON or CSV, for scripts and spreadsheets
-permdrift diff base.json now.json --format json
-permdrift diff base.json now.json --format csv > drift.csv
+sudodrift diff base.json now.json --format json
+sudodrift diff base.json now.json --format csv > drift.csv
 
 # 4. self-contained HTML report (inline CSS only, no external assets)
-permdrift report base.json now.json -o report.html
+sudodrift report base.json now.json -o report.html
 
 # 5. review bundle (zip) with both snapshots, the diff, the report and a review form
-permdrift evidence --base base.json --current now.json -o evidence-myhost-2026-10-23.zip
+sudodrift evidence --base base.json --current now.json -o evidence-myhost-2026-10-23.zip
 ```
 
 Options:
@@ -115,7 +115,7 @@ Options:
 | `--ignore FILE` | diff, report, evidence | line-based ignore patterns (`.txt` or simple `.yaml` list) |
 | `--min-severity low\|medium\|high` | diff, report, evidence | hide anything below this level |
 
-Flags may be written with one or two dashes (`-o` / `--root`) and may come before or after the file arguments. `permdrift <command> --help` prints the options for each command, `permdrift version` the version.
+Flags may be written with one or two dashes (`-o` / `--root`) and may come before or after the file arguments. `sudodrift <command> --help` prints the options for each command, `sudodrift version` the version.
 
 Exit codes: `0` no drift (or a file was written), `1` drift found (`diff` only), `2` error (bad arguments, unreadable/corrupt snapshot, unsupported schema version, an output file that already exists). These do not change with `--format`. `report` and `evidence` exit 0 even when drift is found; use `diff` for gating.
 
@@ -144,7 +144,7 @@ Categories: `user`, `group`, `group_member`, `ssh_key`, `sudoers`, `suid`, `worl
 ```json
 {
   "version": 1,
-  "tool": "permdrift",
+  "tool": "sudodrift",
   "tool_version": "0.2.0",
   "base":    {"hostname": "web1", "timestamp": "...", "content_hash": "sha256:...", "warnings": 0},
   "current": {"hostname": "web1", "timestamp": "...", "content_hash": "sha256:...", "warnings": 0},
@@ -166,8 +166,8 @@ JSON and CSV carry the same text as the text format, except that control charact
 ### Evidence bundle
 
 ```sh
-permdrift evidence --base base.json --current now.json -o evidence-web1-2026-10-23.zip
-permdrift evidence --base base.json --current now.json --dir ./evidence-web1   # plain directory
+sudodrift evidence --base base.json --current now.json -o evidence-web1-2026-10-23.zip
+sudodrift evidence --base base.json --current now.json --dir ./evidence-web1   # plain directory
 ```
 
 Without `-o` or `--dir` the zip is named `evidence-<host>-<date>.zip` (host from the current snapshot, made safe for a file name; date in UTC) and written to the current directory. The command will not overwrite an existing zip unless you pass `--force`, and `--dir` must be new or empty. Files are written with mode 0600 because snapshots describe your hosts.
@@ -178,7 +178,7 @@ The zip holds one top-level folder named after the zip file, with these files in
 |---|---|
 | `base.json`, `current.json` | the two input snapshots, byte for byte |
 | `diff.txt`, `diff.json` | the diff in the text and JSON formats, with your `--ignore` and `--min-severity` applied |
-| `report.html` | the same self-contained HTML report that `permdrift report` writes |
+| `report.html` | the same self-contained HTML report that `sudodrift report` writes |
 | `metadata.json` | tool version, creation time (UTC), host names, snapshot times and content hashes, options used, change counts |
 | `REVIEW.md` | a blank review form: reviewer name, date, and one approved / not approved line plus notes for each High finding |
 | `MANIFEST.sha256` | SHA-256 of every other file, in `sha256sum` format |
@@ -189,23 +189,23 @@ What this is and is not: it puts the material for an access review in one place,
 
 ### Run it on a schedule
 
-permdrift has no daemon. To get regular snapshots, let systemd or cron run it. The files are in `examples/`:
+sudodrift has no daemon. To get regular snapshots, let systemd or cron run it. The files are in `examples/`:
 
-- `examples/systemd/permdrift-snapshot.sh`: takes a snapshot into `/var/lib/permdrift/snapshot-YYYY-MM-DD.json` and keeps the newest 26 (about half a year of weekly runs; change it with `PERMDRIFT_KEEP`)
-- `examples/systemd/permdrift-snapshot.service` and `permdrift-snapshot.timer`: run that script weekly
-- `examples/cron/permdrift.cron`: the same thing for `/etc/cron.d` if you do not use systemd
-- `examples/systemd/permdrift-check.sh`: the drift check described below
+- `examples/systemd/sudodrift-snapshot.sh`: takes a snapshot into `/var/lib/sudodrift/snapshot-YYYY-MM-DD.json` and keeps the newest 26 (about half a year of weekly runs; change it with `SUDODRIFT_KEEP`)
+- `examples/systemd/sudodrift-snapshot.service` and `sudodrift-snapshot.timer`: run that script weekly
+- `examples/cron/sudodrift.cron`: the same thing for `/etc/cron.d` if you do not use systemd
+- `examples/systemd/sudodrift-check.sh`: the drift check described below
 
 Install with systemd:
 
 ```sh
-sudo install -m 0755 bin/permdrift /usr/local/bin/permdrift
-sudo install -m 0755 examples/systemd/permdrift-snapshot.sh examples/systemd/permdrift-check.sh /usr/local/sbin/
-sudo install -m 0644 examples/systemd/permdrift-snapshot.service examples/systemd/permdrift-snapshot.timer /etc/systemd/system/
+sudo install -m 0755 bin/sudodrift /usr/local/bin/sudodrift
+sudo install -m 0755 examples/systemd/sudodrift-snapshot.sh examples/systemd/sudodrift-check.sh /usr/local/sbin/
+sudo install -m 0644 examples/systemd/sudodrift-snapshot.service examples/systemd/sudodrift-snapshot.timer /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable --now permdrift-snapshot.timer
-systemctl list-timers permdrift-snapshot.timer    # shows the next run
-sudo systemctl start permdrift-snapshot.service   # take the first snapshot now
+sudo systemctl enable --now sudodrift-snapshot.timer
+systemctl list-timers sudodrift-snapshot.timer    # shows the next run
+sudo systemctl start sudodrift-snapshot.service   # take the first snapshot now
 ```
 
 The snapshot directory is created with mode 0700. The service runs as root so it can read shadow state and every `~/.ssh`. It uses `ProtectSystem=strict`, but not `ProtectHome`, because that would hide the files it is meant to read. If you run it as a normal user you get a partial snapshot (see above).
@@ -213,7 +213,7 @@ The snapshot directory is created with mode 0700. The service runs as root so it
 Pick a baseline by copying a snapshot you trust, then compare the newest snapshot against it:
 
 ```sh
-sudo cp /var/lib/permdrift/snapshot-2026-10-23.json /var/lib/permdrift/baseline.json
+sudo cp /var/lib/sudodrift/snapshot-2026-10-23.json /var/lib/sudodrift/baseline.json
 ```
 
 The check script is only this:
@@ -221,19 +221,19 @@ The check script is only this:
 ```sh
 #!/bin/sh
 set -eu
-baseline=${1:?usage: permdrift-check.sh BASELINE.json [SNAPSHOT_DIR]}
-dir=${2:-/var/lib/permdrift}
+baseline=${1:?usage: sudodrift-check.sh BASELINE.json [SNAPSHOT_DIR]}
+dir=${2:-/var/lib/sudodrift}
 newest=$(ls -1 "$dir"/snapshot-*.json | sort | tail -n 1)
-exec permdrift diff "$baseline" "$newest"
+exec sudodrift diff "$baseline" "$newest"
 ```
 
-The file in `examples/systemd/` adds a `-q` flag (print nothing unless there is drift, useful for cron mail), a check that the newest file is not the baseline itself, and an error when the directory is empty. Either way the exit status is the one from `permdrift diff`: 0 no drift, 1 drift, 2 error. So `permdrift-check.sh /var/lib/permdrift/baseline.json || notify-me` works in a timer, a cron job or a CI step.
+The file in `examples/systemd/` adds a `-q` flag (print nothing unless there is drift, useful for cron mail), a check that the newest file is not the baseline itself, and an error when the directory is empty. Either way the exit status is the one from `sudodrift diff`: 0 no drift, 1 drift, 2 error. So `sudodrift-check.sh /var/lib/sudodrift/baseline.json || notify-me` works in a timer, a cron job or a CI step.
 
 Things to know: the baseline lives in the same directory as the snapshots it is compared with, so an attacker with root can change both (see the tamper-evidence note above); copy it somewhere else if that matters. The weekly snapshot and the check are separate, so a change made and reverted between two runs is not seen. The shell scripts are covered by the Go tests (against a fake root), and I checked the unit files with `systemd-analyze verify`. I have not run the timer for a full week on a real server.
 
 ### Demo
 
-`./scripts/demo.sh` (builds `bin/permdrift` first if missing; `make demo` does the same) creates a fake root, snapshots it, tampers with it, snapshots again, then runs `diff` and `report`. A pre-generated result is committed:
+`./scripts/demo.sh` (builds `bin/sudodrift` first if missing; `make demo` does the same) creates a fake root, snapshots it, tampers with it, snapshots again, then runs `diff` and `report`. A pre-generated result is committed:
 
 - `examples/sample-report.html`: open in any browser
 - `examples/sample-diff.txt`: text output
@@ -263,15 +263,15 @@ Severity (High/Medium/Low) is a heuristic, e.g. High: key added for root/sudo us
 - **Not tamper-evident.** Snapshots are plain JSON; an attacker with root can edit the host *and* the baseline. Store baselines off-host.
 - **No package, service, network, firewall, cron, kernel-module or process coverage.** Permissions and access paths only.
 - Sudoers parsing is line-based: no alias expansion, no `#include` following beyond `sudoers.d`, no `visudo`-grade validation. PAM, LDAP/SSSD users, `AuthorizedKeysCommand`, custom `AuthorizedKeysFile` paths and ACLs/capabilities/xattrs are not inspected.
-- "became SUID" can only be said when the file was already in the baseline as SGID; otherwise the message says "is now SUID (new file or mode change)", because permdrift does not inventory every file on disk.
+- "became SUID" can only be said when the file was already in the baseline as SGID; otherwise the message says "is now SUID (new file or mode change)", because sudodrift does not inventory every file on disk.
 - Unreadable paths become warnings in the snapshot; run as root for complete results.
 - Linux only. Severity ratings are opinions, not verdicts.
 
 ## Similar projects (honest comparison)
 
-permdrift is not novel. Related tools I found while building it:
+sudodrift is not novel. Related tools I found while building it:
 
-- **[statedrift](https://github.com/statedrift/statedrift)**: also a single static, stdlib-only Go binary for Linux host-state drift. Much broader (packages, services, network, firewall, containers, hash-chained tamper-evident history, evidence bundles). If you want broad host drift with integrity guarantees, look there first. permdrift is narrower and focused on access/permission semantics and readable severity-ranked diffs.
+- **[statedrift](https://github.com/statedrift/statedrift)**: also a single static, stdlib-only Go binary for Linux host-state drift. Much broader (packages, services, network, firewall, containers, hash-chained tamper-evident history, evidence bundles). If you want broad host drift with integrity guarantees, look there first. sudodrift is narrower and focused on access/permission semantics and readable severity-ranked diffs.
 - **[ProcDrift](https://github.com/Towelie/ProcDrift)**: Python tool that baselines execution, persistence and privilege state (processes, systemd units, cron, SUID/SGID, users/groups/sudo) and reports diffs for IR/threat hunting. Overlaps on privilege state; broader on execution/persistence.
 - Others in the same space: `infradrift` (Python), `drift` (matthewvaishnav).
 
@@ -281,19 +281,19 @@ Heavier, more mature alternatives for the same job:
 - **osquery**: SQL over OS state. Query users, sudoers, SUID, authorized_keys and more at fleet scale (needs a daemon/fleet manager for history and diffing).
 - **AIDE** (and Tripwire-style tools): file-integrity databases for content and permission changes. Very good, but gives byte-level deltas, not "this adds a NOPASSWD rule".
 
-Pick permdrift if you want a tiny, dependency-free binary and a human-readable access-drift report; pick those if you need continuous monitoring, fleet scale, or tamper-evidence today.
+Pick sudodrift if you want a tiny, dependency-free binary and a human-readable access-drift report; pick those if you need continuous monitoring, fleet scale, or tamper-evidence today.
 
 ## Development
 
 ```sh
 make test     # go vet + go test -race ./...
-make build    # bin/permdrift
+make build    # bin/sudodrift
 ```
 
 Tests build temporary fake roots (passwd/group/shadow/sudoers/authorized_keys/SUID files) under `internal/fixture`; no root privileges needed. Layout:
 
 ```
-cmd/permdrift/        CLI
+cmd/sudodrift/        CLI
 internal/snapshot/    collectors + JSON model
 internal/diff/        semantic comparison + severity
 internal/ignore/      ignore-file matcher
@@ -308,25 +308,25 @@ examples/             sample output, systemd units, cron file, check script
 
 Free / open-source:
 - More collectors: cron/systemd timers, PAM config, `AuthorizedKeysFile` overrides, capabilities, ACLs, shell-init files.
-- `permdrift check` against a policy file ("only these users may be UID 0 / in sudo").
+- `sudodrift check` against a policy file ("only these users may be UID 0 / in sudo").
 - SARIF output for `diff`; `--fail-on high` for CI.
 - Packaged releases (static binaries, deb/rpm), a `snapshot --since-last` workflow.
 
 Possible paid / hosted ideas (not built):
 - **Multi-host rollup**: central collection of snapshots, fleet-wide dashboard, "which hosts gained NOPASSWD this week".
-- **Signed evidence bundles**: the bundles from `permdrift evidence` are unsigned today; this would add hash-chained, signed snapshots with offline verification for auditors.
+- **Signed evidence bundles**: the bundles from `sudodrift evidence` are unsigned today; this would add hash-chained, signed snapshots with offline verification for auditors.
 - **SOC 2 / ISO 27001 mapping**: tie findings to controls (access control, change management, least privilege) and produce audit-ready reports.
 - Scheduled scans with alerting (Slack/email/webhook) and approval workflows for expected changes.
 
 ## Services
 
-Need help setting this up, collecting SOC 2 / ISO 27001 access review evidence, or integrating it with your fleet? Open an [issue](https://github.com/permdrift/permdrift/issues) or contact me through my GitHub profile.
+Need help setting this up, collecting SOC 2 / ISO 27001 access review evidence, or integrating it with your fleet? Open an [issue](https://github.com/sudodrift/sudodrift/issues) or contact me through my GitHub profile.
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the short version. Bug reports, false positives and missing-collector requests are welcome as [issues](https://github.com/permdrift/permdrift/issues). For code changes, open a pull request that includes a test (fake-root fixtures in `internal/fixture` make this easy), and run `gofmt`, `go vet ./...` and `go test -race ./...` first. Please keep the tool dependency-free (standard library only) and read-only: it must never modify the host it scans.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the short version. Bug reports, false positives and missing-collector requests are welcome as [issues](https://github.com/sudodrift/sudodrift/issues). For code changes, open a pull request that includes a test (fake-root fixtures in `internal/fixture` make this easy), and run `gofmt`, `go vet ./...` and `go test -race ./...` first. Please keep the tool dependency-free (standard library only) and read-only: it must never modify the host it scans.
 
-To report a security problem in permdrift itself, see [SECURITY.md](SECURITY.md).
+To report a security problem in sudodrift itself, see [SECURITY.md](SECURITY.md).
 
 ## License
 

@@ -1,6 +1,6 @@
 ---
 name: Tell me how you use it
-about: No bug, no request. Just tell me how you use permdrift, or why you stopped
+about: No bug, no request. Just tell me how you use sudodrift, or why you stopped
 labels: question
 ---
 
@@ -14,4 +14,4 @@ What do you do with the diff output? Read it, ticket it, feed it to something el
 
 Did anything surprise you or waste your time?
 
-What made you look at permdrift instead of AIDE, osquery, Wazuh or something else, or are you using those too?
+What made you look at sudodrift instead of AIDE, osquery, Wazuh or something else, or are you using those too?

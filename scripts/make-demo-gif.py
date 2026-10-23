@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-"""Render docs/demo.gif from a REAL run of the permdrift binary.
+"""Render docs/demo.gif from a REAL run of the sudodrift binary.
 
 Every command shown is actually executed (fake root in /tmp/demo-root, nothing
 real is touched) and its captured output is what gets drawn. Only the colors
-are added by this script, because permdrift prints plain text.
+are added by this script, because sudodrift prints plain text.
 
-Needs: Python 3, Pillow, DejaVu Sans Mono, a built bin/permdrift.
+Needs: Python 3, Pillow, DejaVu Sans Mono, a built bin/sudodrift.
 Usage: python3 scripts/make-demo-gif.py
 """
 import os, re, shutil, subprocess, sys, tempfile
 from PIL import Image, ImageDraw, ImageFont
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-BIN = os.path.join(REPO, "bin", "permdrift")
+BIN = os.path.join(REPO, "bin", "sudodrift")
 OUT = os.path.join(REPO, "docs", "demo.gif")
 SHOT = os.path.join(REPO, "docs", "report-screenshot.png")
 FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf"
@@ -32,7 +32,7 @@ BARC = (36, 40, 52)
 work = tempfile.mkdtemp(prefix="demo-work-")
 os.symlink(os.path.join(REPO, "scripts"), os.path.join(work, "scripts"))
 bindir = os.path.join(work, "bin"); os.mkdir(bindir)
-os.symlink(BIN, os.path.join(bindir, "permdrift"))
+os.symlink(BIN, os.path.join(bindir, "sudodrift"))
 with open(os.path.join(work, "bob.pub"), "w") as fh:
     fh.write("ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIG2N9j80sbaY1nmljEToRcN55XktyW4TR4LTP2exYzp bob@laptop\n")
 env = dict(os.environ, PATH=bindir + ":" + os.environ["PATH"], HOME="/home/demo", USER="demo", LOGNAME="demo")
@@ -41,15 +41,15 @@ STEPS = [
     ("# 1. build a fake root (no real files touched)", None),
     ("scripts/demo-root.sh " + R, "run"),
     ("# 2. baseline snapshot", None),
-    ("permdrift snapshot -o base.json --root " + R, "run"),
+    ("sudodrift snapshot -o base.json --root " + R, "run"),
     ("# 3. now tamper with it: SSH key, NOPASSWD sudo, sudo group, SUID file", None),
     ("cat bob.pub >> %s/home/bob/.ssh/authorized_keys" % R, "run"),
     ('echo "bob ALL=(ALL) NOPASSWD: ALL" > %s/etc/sudoers.d/90-bob' % R, "run"),
     ("sed -i 's/^sudo:x:27:alice$/sudo:x:27:alice,bob/' %s/etc/group" % R, "run"),
     ("chmod 4755 %s/usr/bin/editor" % R, "run"),
-    ("permdrift snapshot -o now.json --root " + R, "run"),
+    ("sudodrift snapshot -o now.json --root " + R, "run"),
     ("clear", "clear"),
-    ("permdrift diff base.json now.json", "run"),
+    ("sudodrift diff base.json now.json", "run"),
 ]
 results = []
 for cmd, kind in STEPS:
@@ -84,7 +84,7 @@ def style_cmd(cmd):
     if cmd.startswith("#"): return [DIM] * len(cmd)
     cols = [FG] * len(cmd)
     first = cmd.split(" ")[0]
-    for i in range(len(first)): cols[i] = GREEN if first == "permdrift" else FG
+    for i in range(len(first)): cols[i] = GREEN if first == "sudodrift" else FG
     for m in re.finditer(r"(?<= )-{1,2}\w[\w-]*", cmd):
         for i in range(m.start(), m.end()): cols[i] = YEL
     return cols
@@ -104,7 +104,7 @@ class Term:
         d.rectangle([0, 0, W, BAR], fill=BARC)
         for i, c in enumerate([(255, 95, 86), (255, 189, 46), (39, 201, 63)]):
             d.ellipse([14 + i * 22, 9, 26 + i * 22, 21], fill=c)
-        t = "permdrift demo"
+        t = "sudodrift demo"
         d.text((W // 2 - f_reg.getlength(t) / 2, 6), t, font=f_reg, fill=DIM)
         vis = self.rows[-ROWS:]
         for r, row in enumerate(vis):
@@ -146,7 +146,7 @@ for cmd, kind, out in results:
         continue
     term.nl()
     lines = out.rstrip("\n").split("\n") if out.strip() else []
-    slow = cmd.startswith("permdrift diff")
+    slow = cmd.startswith("sudodrift diff")
     for ln in lines:
         if ln == "": term.nl(); continue
         cs = style_output(ln)
@@ -163,7 +163,7 @@ shot = shot.resize((round(shot.width * sh / shot.height), sh), Image.LANCZOS)
 rep = Image.new("RGB", (W, H), BG)
 d = ImageDraw.Draw(rep)
 d.rectangle([0, 0, W, 30], fill=BARC)
-cap = "$ permdrift report base.json now.json -o report.html    # HTML report (larger sample)"
+cap = "$ sudodrift report base.json now.json -o report.html    # HTML report (larger sample)"
 d.text((PADX, 6), cap, font=f_reg, fill=GREEN)
 rep.paste(shot, ((W - shot.width) // 2, 30 + 8))
 frames.append(rep); delays.append(4500)

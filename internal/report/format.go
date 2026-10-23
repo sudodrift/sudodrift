@@ -7,8 +7,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/permdrift/permdrift/internal/diff"
-	"github.com/permdrift/permdrift/internal/snapshot"
+	"github.com/sudodrift/sudodrift/internal/diff"
+	"github.com/sudodrift/sudodrift/internal/snapshot"
 )
 
 // JSONVersion is the version of the JSON layout written by WriteJSON. It is
@@ -16,7 +16,7 @@ import (
 // bump it.
 const JSONVersion = 1
 
-// Formats lists the output formats accepted by `permdrift diff --format`.
+// Formats lists the output formats accepted by `sudodrift diff --format`.
 var Formats = []string{"text", "json", "csv"}
 
 // ValidFormat reports whether f is one of Formats.
@@ -74,7 +74,7 @@ func WriteJSON(w io.Writer, in Input) error {
 	}
 	doc := jsonDoc{
 		Version:     JSONVersion,
-		Tool:        "permdrift",
+		Tool:        "sudodrift",
 		ToolVersion: in.ToolVersion,
 		Base:        jsonSnap(in.Base),
 		Current:     jsonSnap(in.Current),

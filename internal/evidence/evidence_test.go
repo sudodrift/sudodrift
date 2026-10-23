@@ -13,10 +13,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/permdrift/permdrift/internal/diff"
-	"github.com/permdrift/permdrift/internal/fixture"
-	"github.com/permdrift/permdrift/internal/report"
-	"github.com/permdrift/permdrift/internal/snapshot"
+	"github.com/sudodrift/sudodrift/internal/diff"
+	"github.com/sudodrift/sudodrift/internal/fixture"
+	"github.com/sudodrift/sudodrift/internal/report"
+	"github.com/sudodrift/sudodrift/internal/snapshot"
 )
 
 var fixedNow = time.Date(2026, 10, 23, 12, 0, 0, 0, time.UTC)

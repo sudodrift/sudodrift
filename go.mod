@@ -1,3 +1,3 @@
-module github.com/permdrift/permdrift
+module github.com/sudodrift/sudodrift
 
 go 1.21

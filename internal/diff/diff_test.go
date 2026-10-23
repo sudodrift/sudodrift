@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/permdrift/permdrift/internal/fixture"
-	"github.com/permdrift/permdrift/internal/ignore"
-	"github.com/permdrift/permdrift/internal/snapshot"
+	"github.com/sudodrift/sudodrift/internal/fixture"
+	"github.com/sudodrift/sudodrift/internal/ignore"
+	"github.com/sudodrift/sudodrift/internal/snapshot"
 )
 
 func snap(t *testing.T, root string) *snapshot.Snapshot {

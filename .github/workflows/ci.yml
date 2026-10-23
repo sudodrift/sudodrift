@@ -28,7 +28,7 @@ jobs:
       - name: build (linux amd64 + arm64)
         run: |
           for arch in amd64 arm64; do
-            GOOS=linux GOARCH=$arch CGO_ENABLED=0 go build -trimpath -o bin/permdrift-linux-$arch ./cmd/permdrift
+            GOOS=linux GOARCH=$arch CGO_ENABLED=0 go build -trimpath -o bin/sudodrift-linux-$arch ./cmd/sudodrift
           done
       - name: example scripts parse
         run: for f in examples/systemd/*.sh scripts/*.sh; do sh -n "$f" 2>/dev/null || bash -n "$f"; done

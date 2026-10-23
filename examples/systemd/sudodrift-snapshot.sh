@@ -1,16 +1,16 @@
 #!/bin/sh
-# Take a permdrift snapshot into a dated file and delete old ones.
-# Install as /usr/local/sbin/permdrift-snapshot.sh (mode 0755).
+# Take a sudodrift snapshot into a dated file and delete old ones.
+# Install as /usr/local/sbin/sudodrift-snapshot.sh (mode 0755).
 #
 # Environment (all optional):
-#   PERMDRIFT_BIN   path to the permdrift binary (default: permdrift on PATH)
-#   PERMDRIFT_DIR   where snapshots go (default: /var/lib/permdrift)
-#   PERMDRIFT_KEEP  how many dated snapshots to keep (default: 26)
+#   SUDODRIFT_BIN   path to the sudodrift binary (default: sudodrift on PATH)
+#   SUDODRIFT_DIR   where snapshots go (default: /var/lib/sudodrift)
+#   SUDODRIFT_KEEP  how many dated snapshots to keep (default: 26)
 set -eu
 
-bin=${PERMDRIFT_BIN:-permdrift}
-dir=${PERMDRIFT_DIR:-/var/lib/permdrift}
-keep=${PERMDRIFT_KEEP:-26}
+bin=${SUDODRIFT_BIN:-sudodrift}
+dir=${SUDODRIFT_DIR:-/var/lib/sudodrift}
+keep=${SUDODRIFT_KEEP:-26}
 
 umask 077
 mkdir -p "$dir"

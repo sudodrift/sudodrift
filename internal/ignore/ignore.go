@@ -1,4 +1,4 @@
-// Package ignore implements permdrift's tiny line-based ignore file.
+// Package ignore implements sudodrift's tiny line-based ignore file.
 //
 // Each non-blank, non-comment line is a wildcard pattern ('*' any run of
 // characters including '/' and ':', '?' one character) matched against either

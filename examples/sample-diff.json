@@ -1,17 +1,17 @@
 {
   "version": 1,
-  "tool": "permdrift",
-  "tool_version": "0.2.0",
+  "tool": "sudodrift",
+  "tool_version": "v0.1.1-0.20261023094902-33e388fa9218+dirty",
   "base": {
     "hostname": "demo-host",
-    "timestamp": "2026-10-23T09:48:12Z",
-    "content_hash": "sha256:b6a714ad9ed6c3c819cfb9b7e640b2e8f125e7483be1b30881f48b0cc5bbead8",
+    "timestamp": "2026-10-23T09:57:58Z",
+    "content_hash": "sha256:b4a3cf379c33752514676a3bb6807cb484f0e6877b3c242888059599a9c67996",
     "warnings": 0
   },
   "current": {
     "hostname": "demo-host",
-    "timestamp": "2026-10-23T09:48:12Z",
-    "content_hash": "sha256:c2fbcddf3f1d5bd53d7a477caa79581d6d517adb2924d3d87df2ec5b1872d153",
+    "timestamp": "2026-10-23T09:57:58Z",
+    "content_hash": "sha256:71eaf18b419acf6afaf0a2a9191fb8178b2da44f729544c956ad634306567a61",
     "warnings": 0
   },
   "ignored": 0,

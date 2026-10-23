@@ -81,7 +81,7 @@ type FileEntry struct {
 	SHA256 string `json:"sha256,omitempty"` // content hash, SUID/SGID files only
 }
 
-// PrivilegedGroups are group names highlighted by permdrift.
+// PrivilegedGroups are group names highlighted by sudodrift.
 var PrivilegedGroups = map[string]bool{
 	"sudo": true, "wheel": true, "admin": true, "docker": true, "lxd": true,
 }

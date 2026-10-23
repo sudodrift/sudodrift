@@ -1,0 +1,12 @@
+# /etc/cron.d/sudodrift
+# Weekly snapshot, Sundays at 03:17, written to /var/lib/sudodrift/.
+# Use this instead of the systemd timer, not as well as it.
+# Install sudodrift-snapshot.sh as /usr/local/sbin/sudodrift-snapshot.sh first.
+SHELL=/bin/sh
+PATH=/usr/local/bin:/usr/bin:/bin
+17 3 * * 0 root /usr/local/sbin/sudodrift-snapshot.sh
+
+# Optional: check for drift an hour later. With -q the script prints nothing
+# unless something changed, and cron mails any output to MAILTO.
+#MAILTO=you@example.com
+#17 4 * * 0 root /usr/local/sbin/sudodrift-check.sh -q /var/lib/sudodrift/baseline.json

@@ -15,7 +15,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/permdrift/permdrift/internal/fixture"
+	"github.com/sudodrift/sudodrift/internal/fixture"
 )
 
 // driftPair builds a fake root, takes a base snapshot, applies the drift
@@ -212,10 +212,10 @@ func TestEvidenceZipEndToEnd(t *testing.T) {
 			t.Errorf("%s differs from the input file", name)
 		}
 	}
-	// diff.txt equals what `permdrift diff` prints
+	// diff.txt equals what `sudodrift diff` prints
 	_, txt, _ := runCLI("diff", base, cur)
 	if string(b["diff.txt"]) != txt {
-		t.Error("diff.txt differs from permdrift diff output")
+		t.Error("diff.txt differs from sudodrift diff output")
 	}
 	var md struct {
 		ToolVersion string `json:"tool_version"`
@@ -358,7 +358,7 @@ func buildBinary(t *testing.T) string {
 	if err != nil {
 		goBin = filepath.Join(runtime.GOROOT(), "bin", "go")
 	}
-	bin := filepath.Join(t.TempDir(), "permdrift")
+	bin := filepath.Join(t.TempDir(), "sudodrift")
 	cmd := exec.Command(goBin, "build", "-o", bin, ".")
 	cmd.Env = append(os.Environ(), "CGO_ENABLED=0")
 	if out, err := cmd.CombinedOutput(); err != nil {
@@ -375,7 +375,7 @@ func TestExampleScripts(t *testing.T) {
 	root, snaps, tmp := t.TempDir(), t.TempDir(), t.TempDir()
 	fixture.Base(t, root)
 	// Snapshot through the real binary with a fake root: the script calls
-	// "permdrift snapshot" with no --root, so use a wrapper that adds it.
+	// "sudodrift snapshot" with no --root, so use a wrapper that adds it.
 	wrapper := filepath.Join(tmp, "pd")
 	os.WriteFile(wrapper, []byte("#!/bin/sh\nif [ \"$1\" = snapshot ]; then exec "+bin+" \"$@\" --root "+root+"; fi\nexec "+bin+" \"$@\"\n"), 0o755)
 	run := func(script string, env []string, args ...string) (int, string) {
@@ -390,15 +390,15 @@ func TestExampleScripts(t *testing.T) {
 		}
 		return code, string(out)
 	}
-	env := []string{"PERMDRIFT_BIN=" + wrapper, "PERMDRIFT_DIR=" + snaps, "PERMDRIFT_KEEP=2"}
+	env := []string{"SUDODRIFT_BIN=" + wrapper, "SUDODRIFT_DIR=" + snaps, "SUDODRIFT_KEEP=2"}
 
 	// no snapshots yet
-	if c, out := run("permdrift-check.sh", env, "-q", filepath.Join(tmp, "baseline.json"), snaps); c != 2 || !strings.Contains(out, "no snapshots") {
+	if c, out := run("sudodrift-check.sh", env, "-q", filepath.Join(tmp, "baseline.json"), snaps); c != 2 || !strings.Contains(out, "no snapshots") {
 		t.Errorf("empty dir: exit=%d %s", c, out)
 	}
 	// baseline taken by hand
 	baseline := filepath.Join(tmp, "baseline.json")
-	if c, out := run("permdrift-snapshot.sh", env); c != 0 {
+	if c, out := run("sudodrift-snapshot.sh", env); c != 0 {
 		t.Fatalf("snapshot script: %d %s", c, out)
 	}
 	ents, _ := os.ReadDir(snaps)
@@ -411,7 +411,7 @@ func TestExampleScripts(t *testing.T) {
 	for _, n := range []string{"snapshot-2020-01-01.json", "snapshot-2020-02-01.json", "snapshot-2020-03-01.json"} {
 		os.WriteFile(filepath.Join(snaps, n), data, 0o600)
 	}
-	if c, out := run("permdrift-snapshot.sh", env); c != 0 {
+	if c, out := run("sudodrift-snapshot.sh", env); c != 0 {
 		t.Fatalf("second snapshot script run: %d %s", c, out)
 	}
 	left, _ := filepath.Glob(filepath.Join(snaps, "snapshot-*.json"))
@@ -423,10 +423,10 @@ func TestExampleScripts(t *testing.T) {
 	}
 
 	// no drift: exit 0, quiet mode prints nothing
-	if c, out := run("permdrift-check.sh", env, "-q", baseline, snaps); c != 0 || out != "" {
+	if c, out := run("sudodrift-check.sh", env, "-q", baseline, snaps); c != 0 || out != "" {
 		t.Errorf("clean quiet check: exit=%d out=%q", c, out)
 	}
-	if c, out := run("permdrift-check.sh", env, baseline, snaps); c != 0 || !strings.Contains(out, "No drift detected") {
+	if c, out := run("sudodrift-check.sh", env, baseline, snaps); c != 0 || !strings.Contains(out, "No drift detected") {
 		t.Errorf("clean check: exit=%d out=%q", c, out)
 	}
 	// drift: take a new snapshot after tampering, check exits 1
@@ -435,16 +435,16 @@ func TestExampleScripts(t *testing.T) {
 	if c, _, e := runCLI("snapshot", "--root", root, "-o", today); c != 0 {
 		t.Fatal(e)
 	}
-	c, out := run("permdrift-check.sh", env, "-q", baseline, snaps)
+	c, out := run("sudodrift-check.sh", env, "-q", baseline, snaps)
 	if c != 1 || !strings.Contains(out, "DRIFT DETECTED") || !strings.Contains(out, "snapshot-2999-01-01.json") {
 		t.Errorf("drift check: exit=%d out=%q", c, out)
 	}
 	// the newest file being the baseline is an error, not a silent pass
-	if c, _ := run("permdrift-check.sh", env, today, snaps); c != 2 {
+	if c, _ := run("sudodrift-check.sh", env, today, snaps); c != 2 {
 		t.Errorf("newest == baseline should exit 2, got %d", c)
 	}
 	// missing baseline argument
-	if c, _ := run("permdrift-check.sh", env); c != 2 && c != 1 {
+	if c, _ := run("sudodrift-check.sh", env); c != 2 && c != 1 {
 		t.Errorf("missing argument should fail, got %d", c)
 	}
 }

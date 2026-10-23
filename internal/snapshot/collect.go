@@ -66,7 +66,7 @@ func (c *collector) warnErr(what string, err error) {
 // host maps a logical path (as seen inside the scanned root) to a real path.
 // For a fake root, symlinks are resolved chroot-style: absolute targets are
 // re-rooted inside the fake root, so a link such as etc/passwd -> /etc/passwd
-// can never make permdrift read the live host's files.
+// can never make sudodrift read the live host's files.
 func (c *collector) host(logical string) string {
 	if c.root == "/" {
 		return filepath.Join(c.root, logical)
@@ -101,7 +101,7 @@ func resolveInRoot(root, logical string) string {
 		hops++
 		target, err := os.Readlink(cand)
 		if hops > maxSymlinkHops || err != nil {
-			return filepath.Join(root, ".permdrift-unresolvable-symlink")
+			return filepath.Join(root, ".sudodrift-unresolvable-symlink")
 		}
 		if strings.HasPrefix(target, "/") {
 			done = nil
@@ -135,7 +135,7 @@ func Collect(opts Options) (*Snapshot, error) {
 	}
 	s := &Snapshot{
 		Schema:      SchemaVersion,
-		Tool:        "permdrift",
+		Tool:        "sudodrift",
 		ToolVersion: opts.ToolVersion,
 		Timestamp:   now().UTC().Format(time.RFC3339),
 		Root:        root,

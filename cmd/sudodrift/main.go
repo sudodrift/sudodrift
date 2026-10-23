@@ -1,4 +1,4 @@
-// permdrift: Linux permission drift detector.
+// sudodrift: Linux permission drift detector.
 package main
 
 import (
@@ -13,24 +13,24 @@ import (
 	"strings"
 	"time"
 
-	"github.com/permdrift/permdrift/internal/diff"
-	"github.com/permdrift/permdrift/internal/evidence"
-	"github.com/permdrift/permdrift/internal/ignore"
-	"github.com/permdrift/permdrift/internal/report"
-	"github.com/permdrift/permdrift/internal/snapshot"
+	"github.com/sudodrift/sudodrift/internal/diff"
+	"github.com/sudodrift/sudodrift/internal/evidence"
+	"github.com/sudodrift/sudodrift/internal/ignore"
+	"github.com/sudodrift/sudodrift/internal/report"
+	"github.com/sudodrift/sudodrift/internal/snapshot"
 )
 
 // version is overridden at build time via -ldflags "-X main.version=...".
 var version = "0.2.0-dev"
 
-const usage = `permdrift ` + "%s" + `: Linux permission drift detector
+const usage = `sudodrift ` + "%s" + `: Linux permission drift detector
 
 Usage:
-  permdrift snapshot -o snap.json [--root /] [--include-home] [--exclude DIRS]
-  permdrift diff   base.json current.json [--format text|json|csv] [--ignore FILE] [--min-severity low|medium|high]
-  permdrift report base.json current.json -o report.html [--ignore FILE] [--min-severity LEVEL]
-  permdrift evidence --base base.json --current now.json [-o FILE.zip | --dir DIR] [--ignore FILE] [--min-severity LEVEL] [--force]
-  permdrift version
+  sudodrift snapshot -o snap.json [--root /] [--include-home] [--exclude DIRS]
+  sudodrift diff   base.json current.json [--format text|json|csv] [--ignore FILE] [--min-severity low|medium|high]
+  sudodrift report base.json current.json -o report.html [--ignore FILE] [--min-severity LEVEL]
+  sudodrift evidence --base base.json --current now.json [-o FILE.zip | --dir DIR] [--ignore FILE] [--min-severity LEVEL] [--force]
+  sudodrift version
 
 Exit codes: 0 = no drift (or file written), 1 = drift found (diff), 2 = error.
 `
@@ -63,11 +63,11 @@ func run(args []string, stdout, stderr io.Writer) int {
 	case "evidence":
 		err = cmdEvidence(args[1:], stdout, stderr)
 	case "version", "--version", "-v":
-		fmt.Fprintln(stdout, "permdrift", version)
+		fmt.Fprintln(stdout, "sudodrift", version)
 	case "help", "--help", "-h":
 		fmt.Fprintf(stdout, usage, version)
 	default:
-		fmt.Fprintf(stderr, "permdrift: unknown command %q\n\n", args[0])
+		fmt.Fprintf(stderr, "sudodrift: unknown command %q\n\n", args[0])
 		fmt.Fprintf(stderr, usage, version)
 		return 2
 	}
@@ -78,7 +78,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 		if err == errUsage {
 			return 2
 		}
-		fmt.Fprintln(stderr, "permdrift:", err)
+		fmt.Fprintln(stderr, "sudodrift:", err)
 		return 2
 	}
 	return code
@@ -104,10 +104,10 @@ func parseInterspersed(fs *flag.FlagSet, args []string) ([]string, error) {
 var errUsage = errors.New("usage error")
 
 var usageLines = map[string]string{
-	"snapshot": "permdrift snapshot [-o snap.json] [--root DIR] [--include-home] [--exclude DIRS]",
-	"diff":     "permdrift diff base.json current.json [--format text|json|csv] [--ignore FILE] [--min-severity low|medium|high]",
-	"evidence": "permdrift evidence --base base.json --current now.json [-o FILE.zip | --dir DIR] [--ignore FILE] [--min-severity low|medium|high] [--force]",
-	"report":   "permdrift report base.json current.json -o report.html [--ignore FILE] [--min-severity low|medium|high]",
+	"snapshot": "sudodrift snapshot [-o snap.json] [--root DIR] [--include-home] [--exclude DIRS]",
+	"diff":     "sudodrift diff base.json current.json [--format text|json|csv] [--ignore FILE] [--min-severity low|medium|high]",
+	"evidence": "sudodrift evidence --base base.json --current now.json [-o FILE.zip | --dir DIR] [--ignore FILE] [--min-severity low|medium|high] [--force]",
+	"report":   "sudodrift report base.json current.json -o report.html [--ignore FILE] [--min-severity low|medium|high]",
 }
 
 func newFlagSet(name string, stderr io.Writer) *flag.FlagSet {
@@ -186,7 +186,7 @@ func loadSnapshotRaw(path string) (*snapshot.Snapshot, []byte, error) {
 	if err := json.Unmarshal(b, &s); err != nil {
 		return nil, nil, fmt.Errorf("%s: not a valid snapshot: %w", path, err)
 	}
-	if s.Tool != "permdrift" || s.Schema != snapshot.SchemaVersion {
+	if s.Tool != "sudodrift" || s.Schema != snapshot.SchemaVersion {
 		return nil, nil, fmt.Errorf("%s: unsupported snapshot (tool=%q schema=%d)", path, s.Tool, s.Schema)
 	}
 	return &s, b, nil

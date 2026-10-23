@@ -1,13 +1,13 @@
 # Optional: `goreleaser release --clean` to build the archives and packages.
 version: 2
-project_name: permdrift
+project_name: sudodrift
 before:
   hooks:
     - go vet ./...
     - go test ./...
 builds:
-  - main: ./cmd/permdrift
-    binary: permdrift
+  - main: ./cmd/sudodrift
+    binary: sudodrift
     env: [CGO_ENABLED=0]
     goos: [linux]
     goarch: [amd64, arm64]
@@ -19,10 +19,10 @@ archives:
     files: [LICENSE, README.md]
 nfpms:
   - id: packages
-    package_name: permdrift
-    vendor: permdrift
-    homepage: https://github.com/permdrift/permdrift
-    maintainer: permdrift <noreply@permdrift.invalid>
+    package_name: sudodrift
+    vendor: sudodrift
+    homepage: https://github.com/sudodrift/sudodrift
+    maintainer: sudodrift <noreply@sudodrift.invalid>
     description: Linux permission drift detector (sudo, SSH keys, SUID files).
     license: MIT
     formats: [deb, rpm]
@@ -30,9 +30,9 @@ nfpms:
     file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     contents:
       - src: LICENSE
-        dst: /usr/share/doc/permdrift/LICENSE
+        dst: /usr/share/doc/sudodrift/LICENSE
       - src: README.md
-        dst: /usr/share/doc/permdrift/README.md
+        dst: /usr/share/doc/sudodrift/README.md
 checksum:
   name_template: SHA256SUMS
 changelog:

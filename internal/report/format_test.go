@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/permdrift/permdrift/internal/diff"
+	"github.com/sudodrift/sudodrift/internal/diff"
 )
 
 func TestWriteJSONSchema(t *testing.T) {
@@ -38,7 +38,7 @@ func TestWriteJSONSchema(t *testing.T) {
 	if err := json.Unmarshal(buf.Bytes(), &v); err != nil {
 		t.Fatal(err)
 	}
-	if v.Version != JSONVersion || v.Tool != "permdrift" {
+	if v.Version != JSONVersion || v.Tool != "sudodrift" {
 		t.Errorf("version/tool = %d/%q", v.Version, v.Tool)
 	}
 	if v.Summary.Total != len(in.Changes) || v.Summary.Total != len(v.Changes) || v.Summary.Total == 0 {

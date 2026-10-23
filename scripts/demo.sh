@@ -3,14 +3,14 @@
 # then run diff and report. Needs no root privileges and touches nothing real.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-BIN=${BIN:-bin/permdrift}
+BIN=${BIN:-bin/sudodrift}
 OUT=${OUT:-examples}
-ROOT=$(mktemp -d /tmp/permdrift-demo.XXXXXX)
+ROOT=$(mktemp -d /tmp/sudodrift-demo.XXXXXX)
 trap 'rm -rf "$ROOT"' EXIT
 mkdir -p "$OUT"
 if [ ! -x "$BIN" ]; then
   echo "== building $BIN"
-  CGO_ENABLED=0 go build -trimpath -o "$BIN" ./cmd/permdrift
+  CGO_ENABLED=0 go build -trimpath -o "$BIN" ./cmd/sudodrift
 fi
 
 ALICE=AAAAC3NzaC1lZDI1NTE5AAAAICvYBsl/DgCvGh/DMo+nY6kmlyPI24+sT5OvcdsYbW6Q

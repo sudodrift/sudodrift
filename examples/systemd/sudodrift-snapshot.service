@@ -1,18 +1,18 @@
 [Unit]
-Description=Take a permdrift snapshot
-Documentation=https://github.com/permdrift/permdrift
+Description=Take a sudodrift snapshot
+Documentation=https://github.com/sudodrift/sudodrift
 
 [Service]
 Type=oneshot
 # Root is needed to read /etc/shadow, /etc/sudoers and every ~/.ssh.
-ExecStart=/usr/local/sbin/permdrift-snapshot.sh
-# StateDirectory creates /var/lib/permdrift with mode 0700 and keeps it
+ExecStart=/usr/local/sbin/sudodrift-snapshot.sh
+# StateDirectory creates /var/lib/sudodrift with mode 0700 and keeps it
 # writable even though the rest of the file system is read only below.
-StateDirectory=permdrift
+StateDirectory=sudodrift
 StateDirectoryMode=0700
-Environment=PERMDRIFT_BIN=/usr/local/bin/permdrift
+Environment=SUDODRIFT_BIN=/usr/local/bin/sudodrift
 ProtectSystem=strict
 PrivateTmp=yes
 NoNewPrivileges=yes
 # Do not add ProtectHome=yes. It would hide the home directories that
-# permdrift is supposed to read.
+# sudodrift is supposed to read.

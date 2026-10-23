@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/permdrift/permdrift/internal/fixture"
+	"github.com/sudodrift/sudodrift/internal/fixture"
 )
 
 func collect(t *testing.T, root string, home bool) *Snapshot {

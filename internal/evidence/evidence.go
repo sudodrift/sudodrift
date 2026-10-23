@@ -19,8 +19,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/permdrift/permdrift/internal/diff"
-	"github.com/permdrift/permdrift/internal/report"
+	"github.com/sudodrift/sudodrift/internal/diff"
+	"github.com/sudodrift/sudodrift/internal/report"
 )
 
 // File names inside a bundle.
@@ -107,7 +107,7 @@ func Build(in Input) ([]File, error) {
 	sum := diff.Summarize(rp.Changes)
 	meta := Metadata{
 		Version:     MetadataVersion,
-		Tool:        "permdrift",
+		Tool:        "sudodrift",
 		ToolVersion: rp.ToolVersion,
 		GeneratedAt: in.Now.UTC().Format(time.RFC3339),
 		Base:        metaSnap(in.BaseName, rp.Base.Hostname, rp.Base.Timestamp, rp.Base.ToolVersion, rp.Base.ContentHash, len(rp.Base.Warnings)),
@@ -158,7 +158,7 @@ func Review(in report.Input, now time.Time) string {
 	sum := diff.Summarize(in.Changes)
 	var b strings.Builder
 	b.WriteString("# Access drift review\n\n")
-	b.WriteString("This file is a template. Fill it in by hand. permdrift does not review anything itself.\n\n")
+	b.WriteString("This file is a template. Fill it in by hand. sudodrift does not review anything itself.\n\n")
 	fmt.Fprintf(&b, "- Host: %s\n", mdEscape(in.Current.Hostname))
 	fmt.Fprintf(&b, "- Base snapshot taken: %s\n", mdEscape(in.Base.Timestamp))
 	fmt.Fprintf(&b, "- Current snapshot taken: %s\n", mdEscape(in.Current.Timestamp))
@@ -236,7 +236,7 @@ func WriteZip(path string, files []File, now time.Time, force bool) error {
 	}
 	top := strings.TrimSuffix(filepath.Base(path), ".zip")
 	top = SafeName(top)
-	tmp, err := os.CreateTemp(filepath.Dir(path), ".permdrift-evidence-*.tmp")
+	tmp, err := os.CreateTemp(filepath.Dir(path), ".sudodrift-evidence-*.tmp")
 	if err != nil {
 		return err
 	}

@@ -10,3 +10,4 @@ coverage.*
 *.snap.json
 .DS_Store
 /dist/
+__pycache__/

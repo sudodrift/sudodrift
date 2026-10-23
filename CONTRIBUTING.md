@@ -4,20 +4,20 @@ Thanks for looking. This is a small project and I read everything, but I may be 
 
 ## Before you start
 
-For a bug or a false positive, open an issue first with the command you ran and `permdrift version`. For anything bigger than a small fix, open an issue and say what you want to change so we do not waste your time.
+For a bug or a false positive, open an issue first with the command you ran and `sudodrift version`. For anything bigger than a small fix, open an issue and say what you want to change so we do not waste your time.
 
 Two rules I will not bend on:
 
 1. Standard library only. No new dependencies.
-2. permdrift only reads. It must never change the host it scans.
+2. sudodrift only reads. It must never change the host it scans.
 
 ## Setup
 
 You need Go 1.21 or newer.
 
 ```sh
-git clone https://github.com/permdrift/permdrift.git
-cd permdrift
+git clone https://github.com/sudodrift/sudodrift.git
+cd sudodrift
 make test
 make build
 ```
@@ -40,4 +40,4 @@ Severity ratings (High, Medium, Low) are opinions. If you think one is wrong, sa
 
 ## Good first issues
 
-Look for the [good first issue](https://github.com/permdrift/permdrift/labels/good%20first%20issue) label. If you want one, say so in a comment so two people do not do the same thing.
+Look for the [good first issue](https://github.com/sudodrift/sudodrift/labels/good%20first%20issue) label. If you want one, say so in a comment so two people do not do the same thing.

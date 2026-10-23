@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/permdrift/permdrift/internal/diff"
-	"github.com/permdrift/permdrift/internal/fixture"
-	"github.com/permdrift/permdrift/internal/snapshot"
+	"github.com/sudodrift/sudodrift/internal/diff"
+	"github.com/sudodrift/sudodrift/internal/fixture"
+	"github.com/sudodrift/sudodrift/internal/snapshot"
 )
 
 func input(t *testing.T) Input {
