@@ -1,0 +1,11 @@
+[Unit]
+Description=Weekly permdrift snapshot
+
+[Timer]
+OnCalendar=weekly
+# Run once at the next boot if the machine was off at the scheduled time.
+Persistent=true
+RandomizedDelaySec=1h
+
+[Install]
+WantedBy=timers.target

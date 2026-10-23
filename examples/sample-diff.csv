@@ -1,0 +1,16 @@
+severity,type,category,subject,message
+High,changed,file_perm,/etc/shadow:mode,/etc/shadow permissions loosened (secret now readable by group/others): 0640 -> 0644
+High,added,group_member,docker:mallory,user mallory added to group docker (privileged group)
+High,added,group_member,sudo:bob,user bob added to group sudo (privileged group)
+High,added,ssh_key,alice:SHA256:BjSpGY4Pvc0NGK+0HiRFIbuKs0DLXwdrhb9FMiTAu5M,"SSH key SHA256:BjSpGY4Pvc0NGK+0HiRFIbuKs0DLXwdrhb9FMiTAu5M added for user alice (ssh-ed25519, comment ""totally-legit"", options: from=""10.0.0.0/8"") [privileged user]"
+High,added,ssh_key,bob:SHA256:mdjRRFt76vijB/211jtzs1JjGFJR6LVIbEqfsGAoPR4,"SSH key SHA256:mdjRRFt76vijB/211jtzs1JjGFJR6LVIbEqfsGAoPR4 added for user bob (ssh-ed25519, comment ""bob@workstation"") [privileged user]"
+High,changed,sshd,passwordauthentication,"sshd_config passwordauthentication: ""no"" -> ""yes"""
+High,changed,sshd,permitrootlogin,"sshd_config permitrootlogin: ""no"" -> ""yes"""
+High,added,sudoers,/etc/sudoers.d/90-ops: bob ALL=(ALL) NOPASSWD: ALL,NOPASSWD + ALL=(ALL) sudo rule added for bob in /etc/sudoers.d/90-ops: bob ALL=(ALL) NOPASSWD: ALL
+High,changed,suid,/usr/bin/wall,/usr/bin/wall became SUID (mode 2755 -> 6755)
+High,added,user,toor,"user toor added (uid=0, login shell /bin/bash), UID 0 (root-equivalent)"
+High,added,world_writable,/etc/cron.hourly/cleanup.sh,/etc/cron.hourly/cleanup.sh is now world-writable file (mode 0666)
+Medium,added,suid,/usr/bin/foo,"/usr/bin/foo is now SUID (owner alice, mode 4755; new file or mode change)"
+Medium,added,user,mallory,"user mallory added (uid=1002, login shell /bin/bash)"
+Low,added,file_perm,/etc/sudoers.d/90-ops,"sensitive file /etc/sudoers.d/90-ops added (mode 0440, alice:alice)"
+Low,added,file_perm,/home/bob/.ssh/authorized_keys,"sensitive file /home/bob/.ssh/authorized_keys added (mode 0600, alice:alice)"

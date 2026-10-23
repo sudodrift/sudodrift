@@ -74,3 +74,16 @@ set -e
 
 echo "== 5. HTML report"
 "$BIN" report "$OUT/base.json" "$OUT/current.json" -o "$OUT/sample-report.html"
+
+echo "== 6. machine readable diff (json, csv)"
+set +e
+"$BIN" diff "$OUT/base.json" "$OUT/current.json" --format json > "$OUT/sample-diff.json"
+"$BIN" diff "$OUT/base.json" "$OUT/current.json" --format csv > "$OUT/sample-diff.csv"
+set -e
+python3 -m json.tool "$OUT/sample-diff.json" > /dev/null 2>&1 || [ -z "$(command -v python3)" ] || { echo "sample-diff.json is not valid JSON" >&2; exit 1; }
+
+echo "== 7. evidence bundle (checked, then removed; it is not committed)"
+BUNDLE="$ROOT-evidence"
+"$BIN" evidence --base "$OUT/base.json" --current "$OUT/current.json" --dir "$BUNDLE"
+(cd "$BUNDLE" && sha256sum -c MANIFEST.sha256)
+rm -rf "$BUNDLE"

@@ -1,0 +1,144 @@
+{
+  "version": 1,
+  "tool": "permdrift",
+  "tool_version": "0.2.0",
+  "base": {
+    "hostname": "demo-host",
+    "timestamp": "2026-10-23T09:48:12Z",
+    "content_hash": "sha256:b6a714ad9ed6c3c819cfb9b7e640b2e8f125e7483be1b30881f48b0cc5bbead8",
+    "warnings": 0
+  },
+  "current": {
+    "hostname": "demo-host",
+    "timestamp": "2026-10-23T09:48:12Z",
+    "content_hash": "sha256:c2fbcddf3f1d5bd53d7a477caa79581d6d517adb2924d3d87df2ec5b1872d153",
+    "warnings": 0
+  },
+  "ignored": 0,
+  "summary": {
+    "total": 15,
+    "added": 11,
+    "removed": 0,
+    "changed": 4,
+    "high": 11,
+    "medium": 2,
+    "low": 2,
+    "by_category": {
+      "file_perm": 3,
+      "group_member": 2,
+      "ssh_key": 2,
+      "sshd": 2,
+      "sudoers": 1,
+      "suid": 2,
+      "user": 2,
+      "world_writable": 1
+    }
+  },
+  "changes": [
+    {
+      "type": "changed",
+      "category": "file_perm",
+      "subject": "/etc/shadow:mode",
+      "severity": "High",
+      "message": "/etc/shadow permissions loosened (secret now readable by group/others): 0640 -\u003e 0644"
+    },
+    {
+      "type": "added",
+      "category": "group_member",
+      "subject": "docker:mallory",
+      "severity": "High",
+      "message": "user mallory added to group docker (privileged group)"
+    },
+    {
+      "type": "added",
+      "category": "group_member",
+      "subject": "sudo:bob",
+      "severity": "High",
+      "message": "user bob added to group sudo (privileged group)"
+    },
+    {
+      "type": "added",
+      "category": "ssh_key",
+      "subject": "alice:SHA256:BjSpGY4Pvc0NGK+0HiRFIbuKs0DLXwdrhb9FMiTAu5M",
+      "severity": "High",
+      "message": "SSH key SHA256:BjSpGY4Pvc0NGK+0HiRFIbuKs0DLXwdrhb9FMiTAu5M added for user alice (ssh-ed25519, comment \"totally-legit\", options: from=\"10.0.0.0/8\") [privileged user]"
+    },
+    {
+      "type": "added",
+      "category": "ssh_key",
+      "subject": "bob:SHA256:mdjRRFt76vijB/211jtzs1JjGFJR6LVIbEqfsGAoPR4",
+      "severity": "High",
+      "message": "SSH key SHA256:mdjRRFt76vijB/211jtzs1JjGFJR6LVIbEqfsGAoPR4 added for user bob (ssh-ed25519, comment \"bob@workstation\") [privileged user]"
+    },
+    {
+      "type": "changed",
+      "category": "sshd",
+      "subject": "passwordauthentication",
+      "severity": "High",
+      "message": "sshd_config passwordauthentication: \"no\" -\u003e \"yes\""
+    },
+    {
+      "type": "changed",
+      "category": "sshd",
+      "subject": "permitrootlogin",
+      "severity": "High",
+      "message": "sshd_config permitrootlogin: \"no\" -\u003e \"yes\""
+    },
+    {
+      "type": "added",
+      "category": "sudoers",
+      "subject": "/etc/sudoers.d/90-ops: bob ALL=(ALL) NOPASSWD: ALL",
+      "severity": "High",
+      "message": "NOPASSWD + ALL=(ALL) sudo rule added for bob in /etc/sudoers.d/90-ops: bob ALL=(ALL) NOPASSWD: ALL"
+    },
+    {
+      "type": "changed",
+      "category": "suid",
+      "subject": "/usr/bin/wall",
+      "severity": "High",
+      "message": "/usr/bin/wall became SUID (mode 2755 -\u003e 6755)"
+    },
+    {
+      "type": "added",
+      "category": "user",
+      "subject": "toor",
+      "severity": "High",
+      "message": "user toor added (uid=0, login shell /bin/bash), UID 0 (root-equivalent)"
+    },
+    {
+      "type": "added",
+      "category": "world_writable",
+      "subject": "/etc/cron.hourly/cleanup.sh",
+      "severity": "High",
+      "message": "/etc/cron.hourly/cleanup.sh is now world-writable file (mode 0666)"
+    },
+    {
+      "type": "added",
+      "category": "suid",
+      "subject": "/usr/bin/foo",
+      "severity": "Medium",
+      "message": "/usr/bin/foo is now SUID (owner alice, mode 4755; new file or mode change)"
+    },
+    {
+      "type": "added",
+      "category": "user",
+      "subject": "mallory",
+      "severity": "Medium",
+      "message": "user mallory added (uid=1002, login shell /bin/bash)"
+    },
+    {
+      "type": "added",
+      "category": "file_perm",
+      "subject": "/etc/sudoers.d/90-ops",
+      "severity": "Low",
+      "message": "sensitive file /etc/sudoers.d/90-ops added (mode 0440, alice:alice)"
+    },
+    {
+      "type": "added",
+      "category": "file_perm",
+      "subject": "/home/bob/.ssh/authorized_keys",
+      "severity": "Low",
+      "message": "sensitive file /home/bob/.ssh/authorized_keys added (mode 0600, alice:alice)"
+    }
+  ]
+}

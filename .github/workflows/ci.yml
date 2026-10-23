@@ -30,5 +30,7 @@ jobs:
           for arch in amd64 arm64; do
             GOOS=linux GOARCH=$arch CGO_ENABLED=0 go build -trimpath -o bin/permdrift-linux-$arch ./cmd/permdrift
           done
+      - name: example scripts parse
+        run: for f in examples/systemd/*.sh scripts/*.sh; do sh -n "$f" 2>/dev/null || bash -n "$f"; done
       - name: demo smoke test
         run: make demo
