@@ -8,32 +8,36 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"runtime/debug"
 	"strings"
+	"time"
 
 	"github.com/permdrift/permdrift/internal/diff"
+	"github.com/permdrift/permdrift/internal/evidence"
 	"github.com/permdrift/permdrift/internal/ignore"
 	"github.com/permdrift/permdrift/internal/report"
 	"github.com/permdrift/permdrift/internal/snapshot"
 )
 
 // version is overridden at build time via -ldflags "-X main.version=...".
-var version = "0.1.0-dev"
+var version = "0.2.0-dev"
 
 const usage = `permdrift ` + "%s" + `: Linux permission drift detector
 
 Usage:
   permdrift snapshot -o snap.json [--root /] [--include-home] [--exclude DIRS]
-  permdrift diff   base.json current.json [--ignore FILE] [--min-severity low|medium|high]
+  permdrift diff   base.json current.json [--format text|json|csv] [--ignore FILE] [--min-severity low|medium|high]
   permdrift report base.json current.json -o report.html [--ignore FILE] [--min-severity LEVEL]
+  permdrift evidence --base base.json --current now.json [-o FILE.zip | --dir DIR] [--ignore FILE] [--min-severity LEVEL] [--force]
   permdrift version
 
-Exit codes: 0 = no drift, 1 = drift found (diff), 2 = error.
+Exit codes: 0 = no drift (or file written), 1 = drift found (diff), 2 = error.
 `
 
 func init() {
 	// `go install ...@vX.Y.Z` has no -ldflags; fall back to the module version.
-	if version == "0.1.0-dev" {
+	if strings.HasSuffix(version, "-dev") {
 		if bi, ok := debug.ReadBuildInfo(); ok && bi.Main.Version != "" && bi.Main.Version != "(devel)" {
 			version = bi.Main.Version
 		}
@@ -56,6 +60,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 		code, err = cmdDiff(args[1:], stdout, stderr)
 	case "report":
 		err = cmdReport(args[1:], stdout, stderr)
+	case "evidence":
+		err = cmdEvidence(args[1:], stdout, stderr)
 	case "version", "--version", "-v":
 		fmt.Fprintln(stdout, "permdrift", version)
 	case "help", "--help", "-h":
@@ -99,7 +105,8 @@ var errUsage = errors.New("usage error")
 
 var usageLines = map[string]string{
 	"snapshot": "permdrift snapshot [-o snap.json] [--root DIR] [--include-home] [--exclude DIRS]",
-	"diff":     "permdrift diff base.json current.json [--ignore FILE] [--min-severity low|medium|high]",
+	"diff":     "permdrift diff base.json current.json [--format text|json|csv] [--ignore FILE] [--min-severity low|medium|high]",
+	"evidence": "permdrift evidence --base base.json --current now.json [-o FILE.zip | --dir DIR] [--ignore FILE] [--min-severity low|medium|high] [--force]",
 	"report":   "permdrift report base.json current.json -o report.html [--ignore FILE] [--min-severity low|medium|high]",
 }
 
@@ -165,29 +172,54 @@ func cmdSnapshot(args []string, stdout, stderr io.Writer) error {
 }
 
 func loadSnapshot(path string) (*snapshot.Snapshot, error) {
+	s, _, err := loadSnapshotRaw(path)
+	return s, err
+}
+
+// loadSnapshotRaw also returns the file bytes, for the evidence bundle.
+func loadSnapshotRaw(path string) (*snapshot.Snapshot, []byte, error) {
 	b, err := os.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	var s snapshot.Snapshot
 	if err := json.Unmarshal(b, &s); err != nil {
-		return nil, fmt.Errorf("%s: not a valid snapshot: %w", path, err)
+		return nil, nil, fmt.Errorf("%s: not a valid snapshot: %w", path, err)
 	}
 	if s.Tool != "permdrift" || s.Schema != snapshot.SchemaVersion {
-		return nil, fmt.Errorf("%s: unsupported snapshot (tool=%q schema=%d)", path, s.Tool, s.Schema)
+		return nil, nil, fmt.Errorf("%s: unsupported snapshot (tool=%q schema=%d)", path, s.Tool, s.Schema)
 	}
-	return &s, nil
+	return &s, b, nil
 }
 
 type compareFlags struct {
-	ignore, minSev, out string
+	ignore, minSev, out, format string
+}
+
+// filterChanges compares two snapshots and applies the ignore file and the
+// minimum severity.
+func filterChanges(base, cur *snapshot.Snapshot, cf *compareFlags) (*report.Input, diff.Severity, error) {
+	min, err := diff.ParseSeverity(cf.minSev)
+	if err != nil {
+		return nil, 0, err
+	}
+	m, err := ignore.Load(cf.ignore)
+	if err != nil {
+		return nil, 0, fmt.Errorf("ignore file: %w", err)
+	}
+	kept, ignored := diff.Filter(diff.Compare(base, cur), m, min)
+	return &report.Input{Base: base, Current: cur, Changes: kept, Ignored: ignored, ToolVersion: version}, min, nil
 }
 
 func compareSetup(name string, args []string, stderr io.Writer, wantOut bool) (*report.Input, *compareFlags, error) {
+	wantFormat := name == "diff"
 	fs := newFlagSet(name, stderr)
 	cf := &compareFlags{}
 	fs.StringVar(&cf.ignore, "ignore", "", "ignore file (line-based patterns; .txt or .yaml)")
 	fs.StringVar(&cf.minSev, "min-severity", "low", "hide changes below this severity (low|medium|high)")
+	if wantFormat {
+		fs.StringVar(&cf.format, "format", "text", "output format: text, json or csv")
+	}
 	if wantOut {
 		fs.StringVar(&cf.out, "o", "", "output HTML file (required)")
 		fs.StringVar(&cf.out, "output", "", "output HTML file")
@@ -202,9 +234,8 @@ func compareSetup(name string, args []string, stderr io.Writer, wantOut bool) (*
 	if wantOut && cf.out == "" {
 		return nil, nil, fmt.Errorf("report requires -o report.html")
 	}
-	min, err := diff.ParseSeverity(cf.minSev)
-	if err != nil {
-		return nil, nil, err
+	if wantFormat && !report.ValidFormat(cf.format) {
+		return nil, nil, fmt.Errorf("unknown format %q (want %s)", cf.format, strings.Join(report.Formats, ", "))
 	}
 	base, err := loadSnapshot(pos[0])
 	if err != nil {
@@ -214,20 +245,21 @@ func compareSetup(name string, args []string, stderr io.Writer, wantOut bool) (*
 	if err != nil {
 		return nil, nil, err
 	}
-	m, err := ignore.Load(cf.ignore)
+	in, _, err := filterChanges(base, cur, cf)
 	if err != nil {
-		return nil, nil, fmt.Errorf("ignore file: %w", err)
+		return nil, nil, err
 	}
-	kept, ignored := diff.Filter(diff.Compare(base, cur), m, min)
-	return &report.Input{Base: base, Current: cur, Changes: kept, Ignored: ignored, ToolVersion: version}, cf, nil
+	return in, cf, nil
 }
 
 func cmdDiff(args []string, stdout, stderr io.Writer) (int, error) {
-	in, _, err := compareSetup("diff", args, stderr, false)
+	in, cf, err := compareSetup("diff", args, stderr, false)
 	if err != nil {
 		return 2, err
 	}
-	report.WriteText(stdout, *in)
+	if err := report.Write(stdout, cf.format, *in); err != nil {
+		return 2, err
+	}
 	if len(in.Changes) > 0 {
 		return 1, nil
 	}
@@ -253,4 +285,76 @@ func cmdReport(args []string, stdout, stderr io.Writer) error {
 	s := diff.Summarize(in.Changes)
 	fmt.Fprintf(stderr, "report written to %s (%d changes: %d high, %d medium, %d low)\n", cf.out, s.Total, s.High, s.Medium, s.Low)
 	return nil
+}
+
+func cmdEvidence(args []string, stdout, stderr io.Writer) error {
+	fs := newFlagSet("evidence", stderr)
+	cf := &compareFlags{}
+	basePath := fs.String("base", "", "base snapshot (required)")
+	curPath := fs.String("current", "", "current snapshot (required)")
+	dir := fs.String("dir", "", "write the bundle into this new or empty directory instead of a zip")
+	force := fs.Bool("force", false, "replace an existing zip file")
+	fs.StringVar(&cf.out, "o", "", "output zip file (default: evidence-HOST-DATE.zip in the current directory)")
+	fs.StringVar(&cf.out, "output", "", "output zip file")
+	fs.StringVar(&cf.ignore, "ignore", "", "ignore file (line-based patterns; .txt or .yaml)")
+	fs.StringVar(&cf.minSev, "min-severity", "low", "hide changes below this severity (low|medium|high)")
+	pos, err := parseFlags(fs, args)
+	if err != nil {
+		return err
+	}
+	if len(pos) > 0 {
+		return fmt.Errorf("evidence takes no positional arguments (got %q); use --base and --current", pos[0])
+	}
+	if *basePath == "" || *curPath == "" {
+		return fmt.Errorf("evidence needs --base base.json and --current now.json")
+	}
+	if *dir != "" && cf.out != "" {
+		return fmt.Errorf("use either -o or --dir, not both")
+	}
+	base, baseRaw, err := loadSnapshotRaw(*basePath)
+	if err != nil {
+		return err
+	}
+	cur, curRaw, err := loadSnapshotRaw(*curPath)
+	if err != nil {
+		return err
+	}
+	in, min, err := filterChanges(base, cur, cf)
+	if err != nil {
+		return err
+	}
+	now := time.Now()
+	files, err := evidence.Build(evidence.Input{
+		Report: *in, BaseRaw: baseRaw, CurrentRaw: curRaw,
+		BaseName: filepath.Base(*basePath), CurName: filepath.Base(*curPath),
+		MinSev: min, Now: now,
+		IgnoreFile: ignoreName(cf.ignore),
+	})
+	if err != nil {
+		return err
+	}
+	dest := *dir
+	if dest != "" {
+		err = evidence.WriteDir(dest, files)
+	} else {
+		dest = cf.out
+		if dest == "" {
+			dest = evidence.DefaultName(cur.Hostname, now)
+		}
+		err = evidence.WriteZip(dest, files, now, *force)
+	}
+	if err != nil {
+		return err
+	}
+	s := diff.Summarize(in.Changes)
+	fmt.Fprintf(stderr, "evidence bundle written to %s (%d files, %d changes: %d high, %d medium, %d low)\n", dest, len(files), s.Total, s.High, s.Medium, s.Low)
+	fmt.Fprintln(stderr, "note: this collects material for a human review. It is not a signature and not a compliance result.")
+	return nil
+}
+
+func ignoreName(p string) string {
+	if p == "" {
+		return ""
+	}
+	return filepath.Base(p)
 }

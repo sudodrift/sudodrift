@@ -20,6 +20,8 @@ type Input struct {
 	Changes       []diff.Change
 	Ignored       int
 	ToolVersion   string
+	// Generated is the time shown in the HTML report. Zero means now.
+	Generated time.Time
 }
 
 // WriteText prints a plain-text drift summary.
@@ -99,8 +101,12 @@ type view struct {
 // WriteHTML renders a single self-contained HTML file: inline CSS, no
 // scripts, no external assets.
 func WriteHTML(w io.Writer, in Input) error {
+	gen := in.Generated
+	if gen.IsZero() {
+		gen = time.Now()
+	}
 	v := view{
-		Generated:   time.Now().UTC().Format(time.RFC3339),
+		Generated:   gen.UTC().Format(time.RFC3339),
 		ToolVersion: in.ToolVersion,
 		Base:        in.Base, Cur: in.Current,
 		Sum:      diff.Summarize(in.Changes),

@@ -125,7 +125,7 @@ func runErr(t *testing.T, args ...string) string {
 }
 
 func TestSubcommandHelp(t *testing.T) {
-	for _, sub := range []string{"snapshot", "diff", "report"} {
+	for _, sub := range []string{"snapshot", "diff", "report", "evidence"} {
 		for _, h := range []string{"-h", "--help"} {
 			c, _, e := runCLI(sub, h)
 			if c != 0 || !strings.Contains(e, "Usage: permdrift "+sub) {
