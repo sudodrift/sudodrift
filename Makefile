@@ -1,5 +1,5 @@
 BINARY  := bin/sudodrift
-VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo 0.2.0-dev)
+VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo 0.4.0-dev)
 LDFLAGS := -s -w -X main.version=$(VERSION)
 
 .PHONY: all build install test vet fmt demo clean

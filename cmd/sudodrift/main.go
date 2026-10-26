@@ -22,7 +22,7 @@ import (
 )
 
 // version is overridden at build time via -ldflags "-X main.version=...".
-var version = "0.2.0-dev"
+var version = "0.4.0-dev"
 
 const usage = `sudodrift ` + "%s" + `: Linux permission drift detector
 

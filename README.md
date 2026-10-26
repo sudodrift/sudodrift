@@ -14,7 +14,7 @@ The same run as an HTML report (`sudodrift report`):
 
 <img src="docs/report-screenshot.png" alt="sudodrift HTML report" width="700">
 
-> Status: early (v0.2.0). It works and has tests, but expect rough edges and some changes to the JSON schema and severity rules.
+> Status: early (v0.4.0). It works and has tests, but expect rough edges and some changes to the JSON schema and severity rules.
 
 ## The problem
 
@@ -25,7 +25,7 @@ Access on a Linux box quietly drifts: someone adds a "temporary" NOPASSWD rule, 
 Prebuilt static binaries for Linux (amd64 and arm64) are on the [releases page](https://github.com/sudodrift/sudodrift/releases/latest):
 
 ```sh
-VER=v0.2.0; ARCH=amd64   # or arm64
+VER=v0.4.0; ARCH=amd64   # or arm64
 curl -fsSLO https://github.com/sudodrift/sudodrift/releases/download/$VER/sudodrift_${VER#v}_linux_$ARCH.tar.gz
 curl -fsSLO https://github.com/sudodrift/sudodrift/releases/download/$VER/SHA256SUMS
 sha256sum -c SHA256SUMS --ignore-missing
@@ -41,7 +41,7 @@ With Homebrew on Linux (the tool is Linux only, so this does nothing useful on m
 brew install sudodrift/tap/sudodrift
 ```
 
-The formula lives in [sudodrift/homebrew-tap](https://github.com/sudodrift/homebrew-tap) and installs the v0.2.0 release binary.
+The formula lives in [sudodrift/homebrew-tap](https://github.com/sudodrift/homebrew-tap) and installs the v0.4.0 release binary.
 
 ### Docker
 
@@ -155,7 +155,7 @@ Categories: `user`, `group`, `group_member`, `ssh_key`, `sudoers`, `suid`, `worl
 {
   "version": 1,
   "tool": "sudodrift",
-  "tool_version": "0.2.0",
+  "tool_version": "0.4.0",
   "base":    {"hostname": "web1", "timestamp": "...", "content_hash": "sha256:...", "warnings": 0},
   "current": {"hostname": "web1", "timestamp": "...", "content_hash": "sha256:...", "warnings": 0},
   "ignored": 0,
@@ -369,6 +369,14 @@ Heavier, more mature alternatives for the same job:
 - **AIDE** (and Tripwire-style tools): file-integrity databases for content and permission changes. Very good, but gives byte-level deltas, not "this adds a NOPASSWD rule".
 
 Pick sudodrift if you want a tiny, dependency-free binary and a human-readable access-drift report; pick those if you need continuous monitoring, fleet scale, or tamper-evidence today.
+
+## Related tools
+
+Other free tools from the [sudodrift](https://github.com/sudodrift) project:
+
+- **[breach-checks](https://github.com/sudodrift/breach-checks)**: short, read-only shell scripts that check your machines for one real leak or supply chain incident each.
+- **[agent-preflight](https://github.com/sudodrift/agent-preflight)**: lists what an AI coding agent will read and run in a folder before you start it, and flags what looks risky.
+- **[releasedrift](https://github.com/sudodrift/releasedrift)**: finds GitHub release downloads in your code, checks that they are pinned to a SHA-256, and catches release files that were swapped.
 
 ## Development
 
