@@ -1,0 +1,10 @@
+# Argument rules. Line numbers are used by the tests.
+alice ALL = /bin/rm /var/log/app/*.log
+bob   ALL = /usr/sbin/service ntp *
+carol ALL = /bin/ls /srv/[abc]
+dave  ALL = /usr/bin/systemctl restart nginx, /usr/bin/journalctl -u ng?nx
+erin  ALL = /usr/bin/apt ^(update|upgrade)$
+fred  ALL = /bin/echo \*
+gina  ALL = sudoedit /etc/motd
+hank  ALL = /usr/bin/passwd ""
+ivy   ALL = /usr/bin/kill -HUP *, /usr/bin/fsck*

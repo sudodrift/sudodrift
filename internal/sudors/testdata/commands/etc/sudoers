@@ -1,0 +1,7 @@
+# Command rules.
+alice ALL = ^/usr/bin/apt(-get)?$
+bob   ALL = sha256:K4wbbZB3aUP3JS7t0nSCJmOqa3vFm2zxfRBPTvBoOzI= /usr/bin/uptime
+Cmnd_Alias LOGS = /usr/bin/truncate -s 0 /var/log/*.log
+Cmnd_Alias SVC = /usr/bin/systemctl restart *
+%ops  ALL = LOGS, SVC
+carol ALL = !/usr/bin/su, /usr/bin/

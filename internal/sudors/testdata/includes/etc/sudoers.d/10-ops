@@ -1,0 +1,2 @@
+# ops team
+ops ALL = TIMEOUT=5 /usr/bin/id

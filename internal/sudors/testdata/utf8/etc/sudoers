@@ -1,0 +1,3 @@
+root ALL=(ALL:ALL) ALL
+# Café team
+%cafe ALL = /usr/bin/id

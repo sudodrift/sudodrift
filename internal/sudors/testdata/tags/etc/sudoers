@@ -1,0 +1,10 @@
+# Tags and options.
+alice ALL = (root) INTERCEPT: /usr/bin/bash
+bob   ALL = LOG_INPUT: LOG_OUTPUT: /usr/bin/psql
+carol ALL = NOPASSWD: NOEXEC: /usr/bin/less, PASSWD: /usr/bin/vi
+dave  ALL = CHROOT=/srv/jail /bin/sh
+erin  ALL = ROLE=sysadm_r TYPE=sysadm_t /usr/bin/id
+fred  ALL = TIMEOUT=10m /usr/bin/top
+gina  ALL = NOTBEFORE=20260101000000Z /usr/bin/id
+hank  ALL = CWD=/srv NOPASSWD: /usr/bin/make
+ivy   ALL = MAIL: /usr/bin/id

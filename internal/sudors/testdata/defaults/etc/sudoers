@@ -1,0 +1,19 @@
+# Defaults lines.
+Defaults requiretty
+Defaults env_reset, logfile=/var/log/sudo.log
+Defaults !env_reset
+Defaults timestamp_type=global
+Defaults lecture=always
+Defaults insults
+Defaults use_pty=yes
+Defaults !passwd_tries
+Defaults passwd_tries=5000
+Defaults secure_path
+Defaults env_delete += "PYTHONPATH"
+Defaults verifypw=any
+Defaults mail_badpass
+Defaults env_keep += "HTTP_PROXY HTTPS_PROXY", timestamp_timeout=5
+Defaults:%ops !lecture, visiblepw
+Defaults sudoedit_checkdir
+Defaults log_input
+Defaults pwfeedback, !use_pty

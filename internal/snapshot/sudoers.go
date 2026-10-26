@@ -55,17 +55,44 @@ func (c *collector) parseSudoersFile(logical string) {
 // JoinContinuations merges lines ending in a backslash.
 func JoinContinuations(lines []string) []string {
 	var out []string
+	for _, l := range JoinContinuationsNumbered(lines) {
+		out = append(out, l.Text)
+	}
+	return out
+}
+
+// NumberedLine is a logical sudoers line and the 1-based physical line it
+// starts on.
+type NumberedLine struct {
+	Line  int
+	Text  string
+	Joins []int // byte offsets in Text of the spaces that replaced "\\\n"
+}
+
+// JoinContinuationsNumbered merges lines ending in a backslash and keeps the
+// starting line number of each logical line, for messages that point at a
+// line in the file.
+func JoinContinuationsNumbered(lines []string) []NumberedLine {
+	var out []NumberedLine
 	var cur string
-	for _, l := range lines {
+	var joins []int
+	start, open := 0, false
+	for i, l := range lines {
+		if !open {
+			start = i + 1
+		}
 		if strings.HasSuffix(l, "\\") {
-			cur += strings.TrimSuffix(l, "\\") + " "
+			cur += strings.TrimSuffix(l, "\\")
+			joins = append(joins, len(cur))
+			cur += " "
+			open = true
 			continue
 		}
-		out = append(out, cur+l)
-		cur = ""
+		out = append(out, NumberedLine{Line: start, Text: cur + l, Joins: joins})
+		cur, joins, open = "", nil, false
 	}
-	if cur != "" {
-		out = append(out, cur)
+	if open {
+		out = append(out, NumberedLine{Line: start, Text: cur, Joins: joins})
 	}
 	return out
 }

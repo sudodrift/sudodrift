@@ -18,6 +18,7 @@ import (
 	"github.com/sudodrift/sudodrift/internal/ignore"
 	"github.com/sudodrift/sudodrift/internal/report"
 	"github.com/sudodrift/sudodrift/internal/snapshot"
+	"github.com/sudodrift/sudodrift/internal/sudors"
 )
 
 // version is overridden at build time via -ldflags "-X main.version=...".
@@ -30,9 +31,11 @@ Usage:
   sudodrift diff   base.json current.json [--format text|json|csv] [--ignore FILE] [--min-severity low|medium|high] [--fail-on low|medium|high]
   sudodrift report base.json current.json -o report.html [--ignore FILE] [--min-severity LEVEL]
   sudodrift evidence --base base.json --current now.json [-o FILE.zip | --dir DIR] [--ignore FILE] [--min-severity LEVEL] [--force]
+  sudodrift sudors-check [--root DIR] [--format text|json] [--target ubuntu-26.04|ubuntu-25.10|upstream] [--fail-on breaks|differs|info]
   sudodrift version
 
 Exit codes: 0 = no drift (or file written), 1 = drift found (diff), 2 = error.
+sudors-check: 0 = nothing at the --fail-on level (default breaks), 1 = findings at that level, 2 = error.
 `
 
 func init() {
@@ -62,6 +65,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 		err = cmdReport(args[1:], stdout, stderr)
 	case "evidence":
 		err = cmdEvidence(args[1:], stdout, stderr)
+	case "sudors-check":
+		code, err = cmdSudorsCheck(args[1:], stdout, stderr)
 	case "version", "--version", "-v":
 		fmt.Fprintln(stdout, "sudodrift", version)
 	case "help", "--help", "-h":
@@ -104,10 +109,11 @@ func parseInterspersed(fs *flag.FlagSet, args []string) ([]string, error) {
 var errUsage = errors.New("usage error")
 
 var usageLines = map[string]string{
-	"snapshot": "sudodrift snapshot [-o snap.json] [--root DIR] [--include-home] [--exclude DIRS]",
-	"diff":     "sudodrift diff base.json current.json [--format text|json|csv] [--ignore FILE] [--min-severity low|medium|high] [--fail-on low|medium|high]",
-	"evidence": "sudodrift evidence --base base.json --current now.json [-o FILE.zip | --dir DIR] [--ignore FILE] [--min-severity low|medium|high] [--force]",
-	"report":   "sudodrift report base.json current.json -o report.html [--ignore FILE] [--min-severity low|medium|high]",
+	"snapshot":     "sudodrift snapshot [-o snap.json] [--root DIR] [--include-home] [--exclude DIRS]",
+	"diff":         "sudodrift diff base.json current.json [--format text|json|csv] [--ignore FILE] [--min-severity low|medium|high] [--fail-on low|medium|high]",
+	"evidence":     "sudodrift evidence --base base.json --current now.json [-o FILE.zip | --dir DIR] [--ignore FILE] [--min-severity low|medium|high] [--force]",
+	"sudors-check": "sudodrift sudors-check [--root DIR] [--format text|json] [--target ubuntu-26.04|ubuntu-25.10|upstream] [--fail-on breaks|differs|info]",
+	"report":       "sudodrift report base.json current.json -o report.html [--ignore FILE] [--min-severity low|medium|high]",
 }
 
 func newFlagSet(name string, stderr io.Writer) *flag.FlagSet {
@@ -371,4 +377,41 @@ func ignoreName(p string) string {
 		return ""
 	}
 	return filepath.Base(p)
+}
+
+func cmdSudorsCheck(args []string, stdout, stderr io.Writer) (int, error) {
+	fs := newFlagSet("sudors-check", stderr)
+	root := fs.String("root", "/", "filesystem root that holds etc/sudoers (use a copy or a fake root for tests)")
+	format := fs.String("format", "text", "output format: text or json")
+	target := fs.String("target", sudors.DefaultTarget, "sudo-rs release to check against: ubuntu-26.04 (0.2.13), ubuntu-25.10 (0.2.8) or upstream (0.2.15)")
+	failOn := fs.String("fail-on", "breaks", "exit 1 if a finding is at this severity or above (breaks|differs|info)")
+	pos, err := parseFlags(fs, args)
+	if err != nil {
+		return 2, err
+	}
+	if len(pos) > 0 {
+		return 2, fmt.Errorf("sudors-check takes no positional arguments (got %q); use --root", pos[0])
+	}
+	t, err := sudors.FindTarget(*target)
+	if err != nil {
+		return 2, err
+	}
+	fail, err := sudors.ParseSeverity(*failOn)
+	if err != nil {
+		return 2, fmt.Errorf("--fail-on: %w", err)
+	}
+	if *format != "text" && *format != "json" {
+		return 2, fmt.Errorf("unknown format %q (want text or json)", *format)
+	}
+	res, err := sudors.Check(*root, t)
+	if err != nil {
+		return 2, err
+	}
+	if err := sudors.Write(stdout, *format, res); err != nil {
+		return 2, err
+	}
+	if res.Worst() >= fail {
+		return 1, nil
+	}
+	return 0, nil
 }

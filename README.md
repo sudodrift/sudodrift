@@ -101,6 +101,9 @@ sudodrift report base.json now.json -o report.html
 
 # 5. review bundle (zip) with both snapshots, the diff, the report and a review form
 sudodrift evidence --base base.json --current now.json -o evidence-myhost-2026-10-23.zip
+
+# 6. which sudoers lines will sudo-rs (Ubuntu 25.10 and 26.04) reject or treat differently?
+sudo sudodrift sudors-check
 ```
 
 Options:
@@ -108,7 +111,7 @@ Options:
 | Flag | Applies to | Meaning |
 |---|---|---|
 | `-o FILE` | snapshot, report, evidence | output file (snapshot defaults to stdout, evidence to `evidence-HOST-DATE.zip`) |
-| `--root DIR` | snapshot | scan a fake root instead of `/` (tests, mounted images, backups) |
+| `--root DIR` | snapshot, sudors-check | scan a fake root instead of `/` (tests, mounted images, backups) |
 | `--include-home` | snapshot | also walk `/home` for SUID and world-writable files (skipped by default for speed) |
 | `--exclude a,b` | snapshot | extra directories to skip while walking |
 | `--format text\|json\|csv` | diff | output format, default `text` |
@@ -118,6 +121,9 @@ Options:
 | `--ignore FILE` | diff, report, evidence | line-based ignore patterns (`.txt` or simple `.yaml` list) |
 | `--min-severity low\|medium\|high` | diff, report, evidence | hide anything below this level |
 | `--fail-on low\|medium\|high` | diff | exit 1 only if a shown change is at this level or above; output is unchanged |
+| `--target NAME` | sudors-check | sudo-rs release to check against: `ubuntu-26.04` (default), `ubuntu-25.10` or `upstream` |
+| `--fail-on breaks\|differs\|info` | sudors-check | exit 1 if a finding is at this level or above, default `breaks` |
+| `--format text\|json` | sudors-check | output format, default `text` |
 
 Flags may be written with one or two dashes (`-o` / `--root`) and may come before or after the file arguments. `sudodrift <command> --help` prints the options for each command, `sudodrift version` the version.
 
@@ -190,6 +196,83 @@ The zip holds one top-level folder named after the zip file, with these files in
 Check a bundle after unzipping with `cd evidence-web1-2026-10-23 && sha256sum -c MANIFEST.sha256`.
 
 What this is and is not: it puts the material for an access review in one place, with the filled-in review form as the part a person adds. It is **not** a compliance report, an attestation or a signature. The manifest only shows that the files were not changed after the bundle was made; anyone who can rewrite the bundle can rewrite the manifest too. If you need tamper evidence, sign or store the zip somewhere write-once yourself. Whether a bundle satisfies an auditor, or a control in SOC 2, ISO 27001 or anything else, is for you and the auditor to decide. The snapshots themselves still have the limits listed under "What it does not do" (partial coverage, heuristic severity).
+
+### sudo-rs readiness check
+
+Ubuntu 25.10 and 26.04 LTS use [sudo-rs](https://github.com/trifectatechfoundation/sudo-rs) as the default `sudo`. It reads the same `/etc/sudoers`, but it does not support everything original sudo does. When sudo-rs meets a line it does not support, it prints a syntax error and skips that whole line, so a rule that worked before an upgrade can stop granting access.
+
+`sudodrift sudors-check` reads `/etc/sudoers` and every file it pulls in (`@include`, `@includedir`, `#include`, `#includedir`) and lists each line that sudo-rs rejects, ignores or treats differently. It only reads files and needs no network.
+
+```sh
+sudo sudodrift sudors-check                       # check this machine for Ubuntu 26.04
+sudodrift sudors-check --root /mnt/image          # check a mounted image or a copy of /etc
+sudodrift sudors-check --target ubuntu-25.10      # sudo-rs 0.2.8 rules instead of 0.2.13
+sudodrift sudors-check --format json              # for scripts
+sudodrift sudors-check --fail-on differs          # also exit 1 on "differs" findings
+```
+
+Every finding has a severity, a file and line, an explanation, a suggested fix and a link to the source it is based on:
+
+- **breaks**: sudo-rs rejects the line and skips all of it.
+- **differs**: sudo-rs accepts the line but it does not work the same way.
+- **info**: worth knowing, usually nothing to do.
+
+Exit codes: `0` nothing at the `--fail-on` level (default `breaks`), `1` at least one finding at that level or above, `2` usage or read error.
+
+Output of `sudodrift sudors-check --root examples/sudors-check` (exit code 1):
+
+```
+sudo-rs readiness check, target ubuntu-26.04 (sudo-rs 0.2.13)
+Files read: /etc/sudoers, /etc/sudoers.d/90-ops
+
+INFO     /etc/sudoers:3  [defaults-ignored]
+  line:   Defaults env_reset
+  why:    env_reset is always on in sudo-rs, so this line has no effect.
+  fix:    No change needed. You can remove the option.
+  source: https://github.com/trifectatechfoundation/sudo-rs/blob/v0.2.15/README.md#differences-from-original-sudo
+
+INFO     /etc/sudoers:4  [defaults-ignored]
+  line:   Defaults mail_badpass
+  why:    sudo-rs never sends mail, so mail_badpass has no effect. It is accepted for compatibility.
+  fix:    No change needed. You can remove the option.
+  source: https://github.com/trifectatechfoundation/sudo-rs/blob/v0.2.15/README.md#differences-from-original-sudo
+
+BREAKS   /etc/sudoers:7  [defaults-unknown]
+  line:   Defaults requiretty, timestamp_timeout=10
+  why:    sudo-rs 0.2.13 does not know the Defaults option "requiretty" ("unknown setting"). sudo-rs does not implement requiretty on purpose (sudo-rs FAQ, "Why did you change X?"). sudo-rs reports a syntax error and skips the whole line, so nothing else on it takes effect either.
+  fix:    Remove requiretty from this line, or move it to its own Defaults line so the other options still apply.
+  source: https://github.com/trifectatechfoundation/sudo-rs/blob/v0.2.15/FAQ.md#why-did-you-change-x
+
+BREAKS   /etc/sudoers.d/90-ops:2  [arg-wildcard]
+  line:   Cmnd_Alias LOGROTATE = /usr/sbin/logrotate -f /etc/logrotate.d/*
+  why:    Wildcard in argument /etc/logrotate.d/*. sudo-rs only allows a wildcard in arguments as a final, standalone * ("wildcards are not allowed in command arguments"). sudo-rs reports a syntax error and skips the whole line, so nothing else on it takes effect either.
+  fix:    List the exact arguments allowed, or put a single * as the last argument to allow any arguments. Wildcards in the command path itself are still fine.
+  source: https://github.com/trifectatechfoundation/sudo-rs/blob/v0.2.13/src/sudoers/tokens.rs#L196-L228
+
+DIFFERS  /etc/sudoers.d/90-ops:5  [tag-ignored]
+  line:   %ops ALL = (postgres) LOG_OUTPUT: /usr/bin/psql
+  why:    The LOG_OUTPUT tag is ignored by sudo-rs. The rule still applies, but sudo-rs has no I/O logging or mail, and visudo -c from sudo-rs reports the tag ("this tag is ignored by sudo-rs").
+  fix:    Remove LOG_OUTPUT:. Use auditd or session recording outside sudo if you need I/O logs.
+  source: https://github.com/trifectatechfoundation/sudo-rs/blob/v0.2.13/src/sudoers/mod.rs#L754-L758
+
+BREAKS   /etc/sudoers.d/90-ops:6  [host-wildcard]
+  line:   %dba db*.internal = (postgres) /usr/bin/pg_ctl
+  why:    Wildcard in host name db*.internal. The sudo-rs parser only accepts letters, digits, '.', '-' and '_' in host names ("expected host name"), even though its manual still describes host wildcards. sudo-rs reports a syntax error and skips the whole line, so nothing else on it takes effect either.
+  fix:    List each host name, or use a Host_Alias, or ALL.
+  source: https://github.com/trifectatechfoundation/sudo-rs/blob/v0.2.13/src/sudoers/tokens.rs#L80-L101
+
+INFO     /etc/sudoers.d/90-ops:7  [sudoedit-files]
+  line:   deploy ALL = sudoedit /etc/nginx/sites-available/app
+  why:    This rule lets a user edit specific files with sudoedit. USN-8708-1 (1 September 2026) fixed a race in sudo-rs sudoedit that let such a user place files in any directory and possibly gain root. It only affects systems with fine-grained sudoedit rules like this one. On Ubuntu 26.04 the fix is in sudo-rs 0.2.13-0ubuntu1.2.
+  fix:    Run apt update && apt upgrade, and check with: dpkg-query -W sudo-rs
+  source: https://ubuntu.com/security/notices/USN-8708-1
+
+Summary: 3 breaks, 1 differs, 3 info
+```
+
+The same run as JSON is in `examples/sudors-check.json`. Each rule and the sudo-rs source or Ubuntu document it comes from is listed in [docs/sudo-rs.md](docs/sudo-rs.md). The "breaks" results were compared line by line with `visudo -c` from the Ubuntu 26.04 and 25.10 sudo-rs packages and from upstream builds of 0.2.8, 0.2.13 and 0.2.15; that page shows how to repeat the comparison.
+
+Limits: it does not expand aliases (a rejected `Cmnd_Alias` is reported on the alias line), it does not know about backports in a distribution package beyond what the targets describe, and it cannot see differences that are not in the sudoers file, such as the new password prompt or the missing I/O logging.
 
 ### Run it on a schedule
 
@@ -266,7 +349,7 @@ Severity (High/Medium/Low) is a heuristic, e.g. High: key added for root/sudo us
 - It is **not a real-time monitor** or IDS: no daemon, no inotify, no alerting. It compares two snapshots you take.
 - **Not tamper-evident.** Snapshots are plain JSON; an attacker with root can edit the host *and* the baseline. Store baselines off-host.
 - **No package, service, network, firewall, cron, kernel-module or process coverage.** Permissions and access paths only.
-- Sudoers parsing is line-based: no alias expansion, no `#include` following beyond `sudoers.d`, no `visudo`-grade validation. PAM, LDAP/SSSD users, `AuthorizedKeysCommand`, custom `AuthorizedKeysFile` paths and ACLs/capabilities/xattrs are not inspected.
+- Sudoers parsing in `snapshot` is line-based: no alias expansion, no `#include` following beyond `sudoers.d`, no `visudo`-grade validation. (`sudors-check` follows includes, but it also does not expand aliases.) PAM, LDAP/SSSD users, `AuthorizedKeysCommand`, custom `AuthorizedKeysFile` paths and ACLs/capabilities/xattrs are not inspected.
 - "became SUID" can only be said when the file was already in the baseline as SGID; otherwise the message says "is now SUID (new file or mode change)", because sudodrift does not inventory every file on disk.
 - Unreadable paths become warnings in the snapshot; run as root for complete results.
 - Linux only. Severity ratings are opinions, not verdicts.
@@ -303,6 +386,7 @@ internal/diff/        semantic comparison + severity
 internal/ignore/      ignore-file matcher
 internal/report/      text, JSON, CSV and HTML output
 internal/evidence/    evidence bundle (zip or directory)
+internal/sudors/      sudo-rs readiness check (fixtures in testdata/)
 internal/fixture/     fake-root builders (tests/demos)
 scripts/demo.sh       end-to-end demo
 examples/             sample output, systemd units, cron file, check script

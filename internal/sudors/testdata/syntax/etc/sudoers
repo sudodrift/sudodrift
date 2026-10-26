@@ -1,0 +1,10 @@
+# Comments, continuations and user IDs.
+Defaults env_keep += "LANG LC_*" # trailing comment
+#1000 ALL = /bin/rm \
+    /tmp/cache.tmp
+%#2000 ALL = /usr/bin/id   # group by ID
+alice ALL = /usr/bin/printf a\,b, \
+    /usr/bin/id
+Cmd_Alias  SHUTDOWN = /sbin/shutdown -h now, /sbin/reboot
+bob ALL = SHUTDOWN
+carol	ALL = /usr/bin/apt	update

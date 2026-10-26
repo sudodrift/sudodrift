@@ -1,0 +1,14 @@
+# Users, hosts and aliases.
++admins ALL = ALL
+%:Domain\ Admins ALL = ALL
+alice web*.example.com = /usr/bin/id
+bob 10.1.2.3 = /usr/bin/id
+carol 10.0.0.0/8 = /usr/bin/id
+dave fe80::1 = /usr/bin/id
+erin ALL = (+dbas) /usr/bin/psql
+Host_Alias WEB = web1, web2, 192.168.1.10
+User_Alias OPS = alice, +ops
+Runas_Alias DB = postgres, %:dba
+fred WEB = (DB) /usr/bin/psql
+Defaults@db* env_keep += "PGHOST"
+gina web1, web2 = (root : adm) /usr/bin/id : db1 = /usr/bin/uptime

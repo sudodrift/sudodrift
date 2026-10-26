@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "tool": "sudodrift sudors-check",
+  "target": "ubuntu-26.04",
+  "sudo_rs_version": "0.2.13",
+  "files": [
+    "/etc/sudoers",
+    "/etc/sudoers.d/90-ops"
+  ],
+  "summary": {
+    "breaks": 3,
+    "differs": 1,
+    "info": 3
+  },
+  "findings": [
+    {
+      "severity": "info",
+      "rule": "defaults-ignored",
+      "file": "/etc/sudoers",
+      "line": 3,
+      "text": "Defaults env_reset",
+      "explanation": "env_reset is always on in sudo-rs, so this line has no effect.",
+      "fix": "No change needed. You can remove the option.",
+      "source": "https://github.com/trifectatechfoundation/sudo-rs/blob/v0.2.15/README.md#differences-from-original-sudo"
+    },
+    {
+      "severity": "info",
+      "rule": "defaults-ignored",
+      "file": "/etc/sudoers",
+      "line": 4,
+      "text": "Defaults mail_badpass",
+      "explanation": "sudo-rs never sends mail, so mail_badpass has no effect. It is accepted for compatibility.",
+      "fix": "No change needed. You can remove the option.",
+      "source": "https://github.com/trifectatechfoundation/sudo-rs/blob/v0.2.15/README.md#differences-from-original-sudo"
+    },
+    {
+      "severity": "breaks",
+      "rule": "defaults-unknown",
+      "file": "/etc/sudoers",
+      "line": 7,
+      "text": "Defaults requiretty, timestamp_timeout=10",
+      "explanation": "sudo-rs 0.2.13 does not know the Defaults option \"requiretty\" (\"unknown setting\"). sudo-rs does not implement requiretty on purpose (sudo-rs FAQ, \"Why did you change X?\"). sudo-rs reports a syntax error and skips the whole line, so nothing else on it takes effect either.",
+      "fix": "Remove requiretty from this line, or move it to its own Defaults line so the other options still apply.",
+      "source": "https://github.com/trifectatechfoundation/sudo-rs/blob/v0.2.15/FAQ.md#why-did-you-change-x"
+    },
+    {
+      "severity": "breaks",
+      "rule": "arg-wildcard",
+      "file": "/etc/sudoers.d/90-ops",
+      "line": 2,
+      "text": "Cmnd_Alias LOGROTATE = /usr/sbin/logrotate -f /etc/logrotate.d/*",
+      "explanation": "Wildcard in argument /etc/logrotate.d/*. sudo-rs only allows a wildcard in arguments as a final, standalone * (\"wildcards are not allowed in command arguments\"). sudo-rs reports a syntax error and skips the whole line, so nothing else on it takes effect either.",
+      "fix": "List the exact arguments allowed, or put a single * as the last argument to allow any arguments. Wildcards in the command path itself are still fine.",
+      "source": "https://github.com/trifectatechfoundation/sudo-rs/blob/v0.2.13/src/sudoers/tokens.rs#L196-L228"
+    },
+    {
+      "severity": "differs",
+      "rule": "tag-ignored",
+      "file": "/etc/sudoers.d/90-ops",
+      "line": 5,
+      "text": "%ops ALL = (postgres) LOG_OUTPUT: /usr/bin/psql",
+      "explanation": "The LOG_OUTPUT tag is ignored by sudo-rs. The rule still applies, but sudo-rs has no I/O logging or mail, and visudo -c from sudo-rs reports the tag (\"this tag is ignored by sudo-rs\").",
+      "fix": "Remove LOG_OUTPUT:. Use auditd or session recording outside sudo if you need I/O logs.",
+      "source": "https://github.com/trifectatechfoundation/sudo-rs/blob/v0.2.13/src/sudoers/mod.rs#L754-L758"
+    },
+    {
+      "severity": "breaks",
+      "rule": "host-wildcard",
+      "file": "/etc/sudoers.d/90-ops",
+      "line": 6,
+      "text": "%dba db*.internal = (postgres) /usr/bin/pg_ctl",
+      "explanation": "Wildcard in host name db*.internal. The sudo-rs parser only accepts letters, digits, '.', '-' and '_' in host names (\"expected host name\"), even though its manual still describes host wildcards. sudo-rs reports a syntax error and skips the whole line, so nothing else on it takes effect either.",
+      "fix": "List each host name, or use a Host_Alias, or ALL.",
+      "source": "https://github.com/trifectatechfoundation/sudo-rs/blob/v0.2.13/src/sudoers/tokens.rs#L80-L101"
+    },
+    {
+      "severity": "info",
+      "rule": "sudoedit-files",
+      "file": "/etc/sudoers.d/90-ops",
+      "line": 7,
+      "text": "deploy ALL = sudoedit /etc/nginx/sites-available/app",
+      "explanation": "This rule lets a user edit specific files with sudoedit. USN-8708-1 (1 September 2026) fixed a race in sudo-rs sudoedit that let such a user place files in any directory and possibly gain root. It only affects systems with fine-grained sudoedit rules like this one. On Ubuntu 26.04 the fix is in sudo-rs 0.2.13-0ubuntu1.2.",
+      "fix": "Run apt update \u0026\u0026 apt upgrade, and check with: dpkg-query -W sudo-rs",
+      "source": "https://ubuntu.com/security/notices/USN-8708-1"
+    }
+  ]
+}

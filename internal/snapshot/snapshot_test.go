@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -299,5 +300,21 @@ func TestEmptyAndMalformedInputs(t *testing.T) {
 	}
 	if len(s.Warnings) < 2 {
 		t.Errorf("malformed key lines should warn: %v", s.Warnings)
+	}
+}
+
+func TestJoinContinuationsNumbered(t *testing.T) {
+	got := JoinContinuationsNumbered([]string{"a \\", "  b", "c", "d\\", "e\\", "f", "g\\"})
+	want := []NumberedLine{
+		{Line: 1, Text: "a    b", Joins: []int{2}},
+		{Line: 3, Text: "c"},
+		{Line: 4, Text: "d e f", Joins: []int{1, 3}},
+		{Line: 7, Text: "g ", Joins: []int{1}},
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got %#v\nwant %#v", got, want)
+	}
+	if j := JoinContinuations([]string{"a \\", "  b", "c"}); !reflect.DeepEqual(j, []string{"a    b", "c"}) {
+		t.Errorf("JoinContinuations = %q", j)
 	}
 }

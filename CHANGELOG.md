@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased
+
+Added
+
+- `sudodrift sudors-check [--root DIR] [--format text|json] [--target ubuntu-26.04|ubuntu-25.10|upstream] [--fail-on breaks|differs|info]`: reads `/etc/sudoers` and everything it includes and reports each line that sudo-rs (the default `sudo` on Ubuntu 25.10 and 26.04) rejects, ignores or handles differently from original sudo. Each finding has a severity (breaks, differs or info), file and line, an explanation, a suggested fix and a source link. Exit codes: 0 nothing at the `--fail-on` level (default breaks), 1 findings at that level, 2 error.
+- `docs/sudo-rs.md`: every rule with the sudo-rs source code, README, FAQ, man page, Ubuntu document or USN it is based on.
+- Test fixtures for every rule in `internal/sudors/testdata`, and `scripts/check-sudors-fixtures.py`, which compares the results with `visudo -c` from a real sudo-rs.
+- `examples/sudors-check/` with sample output in `examples/sudors-check.txt` and `examples/sudors-check.json`.
+
+Changed
+
+- `snapshot.JoinContinuationsNumbered` keeps the starting line number of each continued sudoers line; `JoinContinuations` now uses it and behaves as before.
+
+Known limits
+
+- Aliases are not expanded. A rejected `Cmnd_Alias` is reported on the alias line, not on the rules that use it.
+- The "breaks" results match `visudo -c` from the Ubuntu 26.04 and 25.10 packages and from upstream 0.2.8, 0.2.13 and 0.2.15 on all fixtures. The "differs" results come from reading the sudo-rs source and docs; they were not tested by running commands through sudo-rs.
+
 ## 0.3.0 (2026-10-26)
 
 Added

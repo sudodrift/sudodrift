@@ -1,0 +1,7 @@
+# Operations team
+Cmnd_Alias LOGROTATE = /usr/sbin/logrotate -f /etc/logrotate.d/*
+Cmnd_Alias SERVICES  = /usr/bin/systemctl restart *, /usr/bin/systemctl status *
+%ops	ALL = (root) NOPASSWD: SERVICES, LOGROTATE
+%ops	ALL = (postgres) LOG_OUTPUT: /usr/bin/psql
+%dba	db*.internal = (postgres) /usr/bin/pg_ctl
+deploy	ALL = sudoedit /etc/nginx/sites-available/app

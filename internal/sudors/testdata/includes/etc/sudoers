@@ -1,0 +1,6 @@
+# Includes.
+@include local/extra
+#includedir /etc/sudoers.d
+@includedir /etc/sudoers.d/%h
+@include /etc/does-not-exist
+%sudo ALL=(ALL:ALL) ALL

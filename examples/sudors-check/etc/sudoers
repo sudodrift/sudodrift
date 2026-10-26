@@ -1,0 +1,13 @@
+# Example sudoers for the sudors-check demo. Based on the Debian 13 default,
+# with a few local changes of the kind that sudo-rs handles differently.
+Defaults	env_reset
+Defaults	mail_badpass
+Defaults	secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+Defaults	use_pty
+Defaults	requiretty, timestamp_timeout=10
+Defaults:%deploy	!lecture, env_keep += "SSH_AUTH_SOCK"
+
+root	ALL=(ALL:ALL) ALL
+%sudo	ALL=(ALL:ALL) ALL
+
+@includedir /etc/sudoers.d
