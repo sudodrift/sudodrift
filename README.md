@@ -377,6 +377,8 @@ Other free tools from the [sudodrift](https://github.com/sudodrift) project:
 - **[breach-checks](https://github.com/sudodrift/breach-checks)**: short, read-only shell scripts that check your machines for one real leak or supply chain incident each.
 - **[agent-preflight](https://github.com/sudodrift/agent-preflight)**: lists what an AI coding agent will read and run in a folder before you start it, and flags what looks risky.
 - **[releasedrift](https://github.com/sudodrift/releasedrift)**: finds GitHub release downloads in your code, checks that they are pinned to a SHA-256, and catches release files that were swapped.
+- **[keydrift](https://github.com/sudodrift/keydrift)**: finds the API keys on your machine, without showing their values, and tells you which ones an incident exposed and what to rotate first.
+- **[keyburn](https://github.com/sudodrift/keyburn)**: watches OpenAI and Anthropic usage per key and alerts you when a key looks stolen, from a sudden spike, a dormant key in use, or spend over a limit.
 
 ## Development
 
