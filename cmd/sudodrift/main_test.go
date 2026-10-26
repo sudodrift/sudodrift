@@ -161,3 +161,46 @@ func TestMinSeverityAndExitCodes(t *testing.T) {
 		t.Errorf("identical snapshots should exit 0, got %d", c)
 	}
 }
+
+func TestFailOn(t *testing.T) {
+	root, tmp := t.TempDir(), t.TempDir()
+	base, med, high := filepath.Join(tmp, "b.json"), filepath.Join(tmp, "m.json"), filepath.Join(tmp, "h.json")
+	fixture.Base(t, root)
+	runCLI("snapshot", "--root", root, "-o", base)
+	// A changed home directory is Medium, whoever runs the test.
+	fixture.Write(t, root, "etc/passwd", ""+
+		"root:x:0:0:root:/root:/bin/bash\n"+
+		"daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\n"+
+		"alice:x:1000:1000:Alice:/home/alice:/bin/bash\n"+
+		"bob:x:1001:1001:Bob:/srv/bob:/bin/bash\n", 0o644)
+	runCLI("snapshot", "--root", root, "-o", med)
+	fixture.Drift(t, root)
+	runCLI("snapshot", "--root", root, "-o", high)
+
+	c, out, _ := runCLI("diff", base, med)
+	if c != 1 || !strings.Contains(out, "[MEDIUM") || strings.Contains(out, "[HIGH") {
+		t.Fatalf("setup: want only Medium drift with exit 1, got exit=%d\n%s", c, out)
+	}
+	// Medium drift: output is unchanged, exit code follows the threshold.
+	for lvl, want := range map[string]int{"low": 1, "medium": 1, "high": 0, "HIGH": 0} {
+		c, got, _ := runCLI("diff", base, med, "--fail-on", lvl)
+		if c != want || got != out {
+			t.Errorf("--fail-on %s: exit=%d want %d, output changed=%v", lvl, c, want, got != out)
+		}
+	}
+	// High drift fails at every level, and all lower changes are still printed.
+	c, out, _ = runCLI("diff", base, high, "--fail-on", "high", "--format", "json")
+	if c != 1 || !strings.Contains(out, `"Medium"`) {
+		t.Errorf("--fail-on high with High drift: exit=%d\n%s", c, out)
+	}
+	if c, _, _ := runCLI("diff", base, base, "--fail-on", "low"); c != 0 {
+		t.Errorf("no drift with --fail-on low should exit 0, got %d", c)
+	}
+	// --fail-on only looks at changes that are shown.
+	if c, _, _ := runCLI("diff", base, med, "--min-severity", "high", "--fail-on", "low"); c != 0 {
+		t.Errorf("hidden Medium change should not fail, got %d", c)
+	}
+	if c, _, e := runCLI("diff", base, med, "--fail-on", "nope"); c != 2 || !strings.Contains(e, "--fail-on") {
+		t.Errorf("bad --fail-on: exit=%d stderr=%q", c, e)
+	}
+}

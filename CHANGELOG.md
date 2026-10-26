@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+Added
+
+- `sudodrift diff --fail-on low|medium|high`: print every change as before, but exit 1 only when at least one shown change is at that level or above. Without the flag the exit code is the same as before.
+
 ## 0.2.0 (2026-10-23)
 
 This is the first release under the name sudodrift. The project was called permdrift in v0.1.0 and was renamed because another project already uses the name PermDrift. The v0.1.0 release was removed because its binaries carry the old name. The Go module path, the command, the default directory (`/var/lib/sudodrift`) and the environment variables (`SUDODRIFT_*`) all changed.

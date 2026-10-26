@@ -89,6 +89,9 @@ sudo sudodrift snapshot -o now.json
 # 3. text diff; exit code 1 if drift was found (handy for cron/CI)
 sudodrift diff base.json now.json
 
+# 3a. print everything, but only exit 1 when something High shows up
+sudodrift diff base.json now.json --fail-on high
+
 # 3b. the same diff as JSON or CSV, for scripts and spreadsheets
 sudodrift diff base.json now.json --format json
 sudodrift diff base.json now.json --format csv > drift.csv
@@ -114,10 +117,11 @@ Options:
 | `--force` | evidence | replace an existing zip file (otherwise it refuses) |
 | `--ignore FILE` | diff, report, evidence | line-based ignore patterns (`.txt` or simple `.yaml` list) |
 | `--min-severity low\|medium\|high` | diff, report, evidence | hide anything below this level |
+| `--fail-on low\|medium\|high` | diff | exit 1 only if a shown change is at this level or above; output is unchanged |
 
 Flags may be written with one or two dashes (`-o` / `--root`) and may come before or after the file arguments. `sudodrift <command> --help` prints the options for each command, `sudodrift version` the version.
 
-Exit codes: `0` no drift (or a file was written), `1` drift found (`diff` only), `2` error (bad arguments, unreadable/corrupt snapshot, unsupported schema version, an output file that already exists). These do not change with `--format`. `report` and `evidence` exit 0 even when drift is found; use `diff` for gating.
+Exit codes: `0` no drift (or a file was written), `1` drift found (`diff` only), `2` error (bad arguments, unreadable/corrupt snapshot, unsupported schema version, an output file that already exists). These do not change with `--format`. `report` and `evidence` exit 0 even when drift is found; use `diff` for gating. With `--fail-on high`, `diff` still prints every change but exits 0 unless at least one of them is High. It only counts changes that are shown, so anything hidden by `--ignore` or `--min-severity` never fails the run.
 
 Snapshots taken as an unprivileged user are partial (unreadable paths such as `/etc/sudoers` or other users' `~/.ssh` become warnings inside the snapshot, and `diff` notes it). Don't diff a non-root snapshot against a root one: the difference will show up as spurious "added" changes. With `--root DIR`, symlinks are resolved inside `DIR` (an absolute link such as `etc/passwd -> /etc/passwd` is re-rooted), so a scan of a mounted image never reads the live host.
 
@@ -309,7 +313,7 @@ examples/             sample output, systemd units, cron file, check script
 Free / open-source:
 - More collectors: cron/systemd timers, PAM config, `AuthorizedKeysFile` overrides, capabilities, ACLs, shell-init files.
 - `sudodrift check` against a policy file ("only these users may be UID 0 / in sudo").
-- SARIF output for `diff`; `--fail-on high` for CI.
+- SARIF output for `diff`.
 - Packaged releases (static binaries, deb/rpm), a `snapshot --since-last` workflow.
 
 Possible paid / hosted ideas (not built):

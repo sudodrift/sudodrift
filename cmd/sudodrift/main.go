@@ -27,7 +27,7 @@ const usage = `sudodrift ` + "%s" + `: Linux permission drift detector
 
 Usage:
   sudodrift snapshot -o snap.json [--root /] [--include-home] [--exclude DIRS]
-  sudodrift diff   base.json current.json [--format text|json|csv] [--ignore FILE] [--min-severity low|medium|high]
+  sudodrift diff   base.json current.json [--format text|json|csv] [--ignore FILE] [--min-severity low|medium|high] [--fail-on low|medium|high]
   sudodrift report base.json current.json -o report.html [--ignore FILE] [--min-severity LEVEL]
   sudodrift evidence --base base.json --current now.json [-o FILE.zip | --dir DIR] [--ignore FILE] [--min-severity LEVEL] [--force]
   sudodrift version
@@ -105,7 +105,7 @@ var errUsage = errors.New("usage error")
 
 var usageLines = map[string]string{
 	"snapshot": "sudodrift snapshot [-o snap.json] [--root DIR] [--include-home] [--exclude DIRS]",
-	"diff":     "sudodrift diff base.json current.json [--format text|json|csv] [--ignore FILE] [--min-severity low|medium|high]",
+	"diff":     "sudodrift diff base.json current.json [--format text|json|csv] [--ignore FILE] [--min-severity low|medium|high] [--fail-on low|medium|high]",
 	"evidence": "sudodrift evidence --base base.json --current now.json [-o FILE.zip | --dir DIR] [--ignore FILE] [--min-severity low|medium|high] [--force]",
 	"report":   "sudodrift report base.json current.json -o report.html [--ignore FILE] [--min-severity low|medium|high]",
 }
@@ -193,7 +193,7 @@ func loadSnapshotRaw(path string) (*snapshot.Snapshot, []byte, error) {
 }
 
 type compareFlags struct {
-	ignore, minSev, out, format string
+	ignore, minSev, out, format, failOn string
 }
 
 // filterChanges compares two snapshots and applies the ignore file and the
@@ -219,6 +219,7 @@ func compareSetup(name string, args []string, stderr io.Writer, wantOut bool) (*
 	fs.StringVar(&cf.minSev, "min-severity", "low", "hide changes below this severity (low|medium|high)")
 	if wantFormat {
 		fs.StringVar(&cf.format, "format", "text", "output format: text, json or csv")
+		fs.StringVar(&cf.failOn, "fail-on", "", "exit 1 only if a shown change is at this severity or above (low|medium|high)")
 	}
 	if wantOut {
 		fs.StringVar(&cf.out, "o", "", "output HTML file (required)")
@@ -236,6 +237,11 @@ func compareSetup(name string, args []string, stderr io.Writer, wantOut bool) (*
 	}
 	if wantFormat && !report.ValidFormat(cf.format) {
 		return nil, nil, fmt.Errorf("unknown format %q (want %s)", cf.format, strings.Join(report.Formats, ", "))
+	}
+	if cf.failOn != "" {
+		if _, err := diff.ParseSeverity(cf.failOn); err != nil {
+			return nil, nil, fmt.Errorf("--fail-on: %w", err)
+		}
 	}
 	base, err := loadSnapshot(pos[0])
 	if err != nil {
@@ -260,8 +266,16 @@ func cmdDiff(args []string, stdout, stderr io.Writer) (int, error) {
 	if err := report.Write(stdout, cf.format, *in); err != nil {
 		return 2, err
 	}
-	if len(in.Changes) > 0 {
-		return 1, nil
+	// Without --fail-on any shown change is drift. With it, only changes at
+	// that level or above set exit code 1; the output is the same either way.
+	fail := diff.Low
+	if cf.failOn != "" {
+		fail, _ = diff.ParseSeverity(cf.failOn) // checked in compareSetup
+	}
+	for _, c := range in.Changes {
+		if c.Severity >= fail {
+			return 1, nil
+		}
 	}
 	return 0, nil
 }
