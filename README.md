@@ -380,6 +380,10 @@ Other free tools from the [sudodrift](https://github.com/sudodrift) project:
 - **[keydrift](https://github.com/sudodrift/keydrift)**: finds the API keys on your machine, without showing their values, and tells you which ones an incident exposed and what to rotate first.
 - **[keyburn](https://github.com/sudodrift/keyburn)**: watches OpenAI and Anthropic usage per key and alerts you when a key looks stolen, from a sudden spike, a dormant key in use, or spend over a limit.
 
+## Pro Pack and kits
+
+sudodrift is free and stays free. If you run it on real servers, the paid [sudodrift Pro Pack](https://sudodrift.gumroad.com/l/cipiuh) adds a hardening checklist, tested sudoers.d and sshd configs, a quarterly access review kit and fleet scripts. Other kits, like a Linux intrusion triage kit and an SSH certificate kit, are listed at [sudodrift.github.io/kits](https://sudodrift.github.io/kits/).
+
 ## Development
 
 ```sh
